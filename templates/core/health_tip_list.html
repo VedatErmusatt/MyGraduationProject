@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block title %}Sağlık İpuçları - Kronik Sağlık Uygulaması{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Sağlık İpuçları</h5>
+            </div>
+            <div class="card-body">
+                {% if health_tips %}
+                    <div class="row">
+                        {% for tip in health_tips %}
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                {% if tip.image %}
+                                <img src="{{ tip.image.url }}" class="card-img-top" alt="{{ tip.title }}">
+                                {% endif %}
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ tip.title }}</h5>
+                                    <p class="card-text">{{ tip.content|truncatewords:50 }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">Yayın Tarihi: {{ tip.created_at|date:"d.m.Y" }}</small>
+                                        <a href="{% url 'core:health_tip_detail' tip.pk %}" class="btn btn-primary btn-sm">
+                                            Devamını Oku
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">Henüz sağlık ipucu bulunmuyor.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+
+{% block title %}Uyku Kayıtları - Kronik Sağlık Uygulaması{% endblock %}
+
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Uyku Kayıtları</h1>
+        <a href="{% url 'health_data:sleep_add' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Yeni Kayıt
+        </a>
+    </div>
+
+    {% if sleeps %}
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Tarih</th>
+                            <th>Uyku Saati</th>
+                            <th>Uyanma Saati</th>
+                            <th>Süre</th>
+                            <th>Kalite</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sleep in sleeps %}
+                        <tr>
+                            <td>{{ sleep.date|date:"d.m.Y" }}</td>
+                            <td>{{ sleep.sleep_time|time:"H:i" }}</td>
+                            <td>{{ sleep.wake_time|time:"H:i" }}</td>
+                            <td>{{ sleep.duration }} saat</td>
+                            <td>
+                                {% if sleep.quality == 5 %}
+                                <span class="badge bg-success">Çok İyi</span>
+                                {% elif sleep.quality == 4 %}
+                                <span class="badge bg-info">İyi</span>
+                                {% elif sleep.quality == 3 %}
+                                <span class="badge bg-warning">Orta</span>
+                                {% elif sleep.quality == 2 %}
+                                <span class="badge bg-danger">Kötü</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Çok Kötü</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'health_data:sleep_detail' sleep.pk %}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'health_data:sleep_edit' sleep.pk %}" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'health_data:sleep_delete' sleep.pk %}" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-moon fa-3x text-muted mb-3"></i>
+            <h3 class="h5 text-muted">Henüz uyku kaydı yok</h3>
+            <p class="text-muted mb-4">İlk uyku kaydınızı oluşturmak için aşağıdaki butonu kullanabilirsiniz.</p>
+            <a href="{% url 'health_data:sleep_add' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>İlk Kaydı Ekle
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

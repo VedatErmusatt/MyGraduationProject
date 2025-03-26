@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Profil - Kronik Sağlık Uygulaması{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Profil Bilgileri</h5>
+                <a href="{% url 'users:profile_edit' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-edit"></i> Düzenle
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-4 text-center">
+                        <img src="https://ui-avatars.com/api/?name={{ user.get_full_name|urlencode }}&background=0d6efd&color=fff" 
+                             alt="Profil Resmi" class="img-fluid rounded-circle mb-3" style="max-width: 150px;">
+                        <h5>{{ user.get_full_name }}</h5>
+                        <p class="text-muted">{{ user.get_user_type_display }}</p>
+                    </div>
+                    <div class="col-md-8">
+                        <table class="table">
+                            <tr>
+                                <th>E-posta:</th>
+                                <td>{{ user.email }}</td>
+                            </tr>
+                            <tr>
+                                <th>Telefon:</th>
+                                <td>{{ user.phone_number }}</td>
+                            </tr>
+                            <tr>
+                                <th>Doğum Tarihi:</th>
+                                <td>{{ user.date_of_birth|date:"d.m.Y" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Cinsiyet:</th>
+                                <td>{{ user.get_gender_display }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">Hesap Güvenliği</h6>
+                                <a href="{% url 'users:password_change' %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-key"></i> Şifre Değiştir
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">Hesap İşlemleri</h6>
+                                <a href="{% url 'users:logout' %}" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-sign-out-alt"></i> Çıkış Yap
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

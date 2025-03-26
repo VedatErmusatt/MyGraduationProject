@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load i18n %}
+
+
+{% block title %}Dashboard - Kronik Sağlık Uygulaması{% endblock %}
+
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="h3 mb-4">Hoş Geldiniz, {{ user.get_full_name|default:user.email }}</h1>
+
+    <div class="row">
+        <!-- Vital Bulgular -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2 class="h5 mb-0">Vital Bulgular</h2>
+                    <a href="{% url 'health_data:vital_signs_add' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus me-2"></i>Yeni Kayıt
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if vital_signs %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Tarih</th>
+                                    <th>Tansiyon</th>
+                                    <th>Nabız</th>
+                                    <th>Sıcaklık</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for vital in vital_signs %}
+                                <tr>
+                                    <td>{{ vital.date|date:"d.m.Y" }}</td>
+                                    <td>{{ vital.blood_pressure_systolic }}/{{ vital.blood_pressure_diastolic }}</td>
+                                    <td>{{ vital.heart_rate }}</td>
+                                    <td>{{ vital.temperature }}°C</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{% url 'health_data:vital_signs_detail' vital.pk %}" class="btn btn-sm btn-info">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'health_data:vital_signs_edit' vital.pk %}" class="btn btn-sm btn-warning">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0">Henüz vital bulgu kaydı yok.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- İlaçlar -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2 class="h5 mb-0">Aktif İlaçlar</h2>
+                    <a href="{% url 'health_data:medication_add' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus me-2"></i>Yeni İlaç
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if medications %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>İlaç Adı</th>
+                                    <th>Doz</th>
+                                    <th>Kullanım</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for medication in medications %}
+                                <tr>
+                                    <td>{{ medication.name }}</td>
+                                    <td>{{ medication.dosage }}</td>
+                                    <td>{{ medication.frequency }}</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{% url 'health_data:medication_detail' medication.pk %}" class="btn btn-sm btn-info">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'health_data:medication_edit' medication.pk %}" class="btn btn-sm btn-warning">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0">Aktif ilaç bulunmuyor.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Egzersizler -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2 class="h5 mb-0">Son Egzersizler</h2>
+                    <a href="{% url 'health_data:exercise_add' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus me-2"></i>Yeni Egzersiz
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if exercises %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Tarih</th>
+                                    <th>Tür</th>
+                                    <th>Süre</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for exercise in exercises %}
+                                <tr>
+                                    <td>{{ exercise.date|date:"d.m.Y" }}</td>
+                                    <td>{{ exercise.type }}</td>
+                                    <td>{{ exercise.duration }} dk</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{% url 'health_data:exercise_detail' exercise.pk %}" class="btn btn-sm btn-info">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'health_data:exercise_edit' exercise.pk %}" class="btn btn-sm btn-warning">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0">Henüz egzersiz kaydı yok.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Uyku Kayıtları -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2 class="h5 mb-0">Son Uyku Kayıtları</h2>
+                    <a href="{% url 'health_data:sleep_add' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus me-2"></i>Yeni Kayıt
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if sleep_records %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Tarih</th>
+                                    <th>Süre</th>
+                                    <th>Kalite</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sleep in sleep_records %}
+                                <tr>
+                                    <td>{{ sleep.date|date:"d.m.Y" }}</td>
+                                    <td>{{ sleep.duration }} saat</td>
+                                    <td>
+                                        {% if sleep.quality == 5 %}
+                                        <span class="badge bg-success">Çok İyi</span>
+                                        {% elif sleep.quality == 4 %}
+                                        <span class="badge bg-info">İyi</span>
+                                        {% elif sleep.quality == 3 %}
+                                        <span class="badge bg-warning">Orta</span>
+                                        {% elif sleep.quality == 2 %}
+                                        <span class="badge bg-danger">Kötü</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Çok Kötü</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{% url 'health_data:sleep_detail' sleep.pk %}" class="btn btn-sm btn-info">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'health_data:sleep_edit' sleep.pk %}" class="btn btn-sm btn-warning">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0">Henüz uyku kaydı yok.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

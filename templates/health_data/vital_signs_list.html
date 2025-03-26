@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Vital Bulgular - Kronik Sağlık Uygulaması{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Vital Bulgular</h5>
+                <a href="{% url 'health_data:vital_signs_add' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Yeni Kayıt
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tarih</th>
+                                <th>Sistolik</th>
+                                <th>Diastolik</th>
+                                <th>Nabız</th>
+                                <th>Sıcaklık</th>
+                                <th>Notlar</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for vital in vitals %}
+                            <tr>
+                                <td>{{ vital.date|date:"d.m.Y H:i" }}</td>
+                                <td>{{ vital.blood_pressure_systolic }}</td>
+                                <td>{{ vital.blood_pressure_diastolic }}</td>
+                                <td>{{ vital.heart_rate }}</td>
+                                <td>{{ vital.temperature }}</td>
+                                <td>{{ vital.notes|truncatewords:10 }}</td>
+                                <td>
+                                    <a href="{% url 'health_data:vital_signs_detail' vital.id %}" class="btn btn-info btn-sm">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'health_data:vital_signs_edit' vital.id %}" class="btn btn-warning btn-sm">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'health_data:vital_signs_delete' vital.id %}" class="btn btn-danger btn-sm">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center">Henüz vital bulgu kaydı bulunmuyor.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ana Sayfa - Kronik Sağlık Uygulaması{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Hero Section -->
+    <div class="col-12 mb-5">
+        <div class="bg-primary text-white p-5 rounded">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="display-4">Sağlığınızı Yönetin</h1>
+                    <p class="lead">Kronik Sağlık Uygulaması ile sağlık verilerinizi takip edin, doktorunuzla iletişim kurun ve sağlıklı bir yaşam sürün.</p>
+                    {% if not user.is_authenticated %}
+                        <div class="mt-4">
+                            <a href="{% url 'users:register' %}" class="btn btn-light btn-lg me-3">Hemen Başla</a>
+                            <a href="{% url 'users:login' %}" class="btn btn-outline-light btn-lg">Giriş Yap</a>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 text-center">
+                    <i class="fas fa-heartbeat fa-10x text-white"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="col-12 mb-5">
+        <h2 class="text-center mb-4">Özellikler</h2>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-heartbeat fa-3x text-primary mb-3"></i>
+                        <h3 class="card-title">Vital Bulgular Takibi</h3>
+                        <p class="card-text">Kan basıncı, nabız, şeker ölçümü gibi vital bulgularınızı kaydedin ve takip edin.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-pills fa-3x text-primary mb-3"></i>
+                        <h3 class="card-title">İlaç Yönetimi</h3>
+                        <p class="card-text">İlaçlarınızı kaydedin, hatırlatıcılar oluşturun ve ilaç kullanımınızı takip edin.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-running fa-3x text-primary mb-3"></i>
+                        <h3 class="card-title">Egzersiz Takibi</h3>
+                        <p class="card-text">Yaptığınız egzersizleri kaydedin ve fiziksel aktivite hedeflerinizi takip edin.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-bed fa-3x text-primary mb-3"></i>
+                        <h3 class="card-title">Uyku Takibi</h3>
+                        <p class="card-text">Uyku düzeninizi kaydedin ve uyku kalitenizi analiz edin.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-calendar-check fa-3x text-primary mb-3"></i>
+                        <h3 class="card-title">Randevu Yönetimi</h3>
+                        <p class="card-text">Doktor randevularınızı planlayın ve takip edin.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-comments fa-3x text-primary mb-3"></i>
+                        <h3 class="card-title">Doktor İletişimi</h3>
+                        <p class="card-text">Doktorunuzla güvenli bir şekilde iletişim kurun ve reçetelerinizi yönetin.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Health Tips Section -->
+    {% if health_tips %}
+    <div class="col-12 mb-5">
+        <h2 class="text-center mb-4">Sağlık İpuçları</h2>
+        <div class="row">
+            {% for tip in health_tips %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title">{{ tip.title }}</h3>
+                        <p class="card-text">{{ tip.content|truncatewords:30 }}</p>
+                        <a href="{% url 'core:health_tip_detail' tip.pk %}" class="btn btn-primary">Devamını Oku</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

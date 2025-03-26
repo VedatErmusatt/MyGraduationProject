@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load crispy_forms_tags %}
+
+
+{% block title %}{{ message.subject }} - Kronik Sağlık Uygulaması{% endblock %}
+
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2 class="h4 mb-0">{{ message.subject }}</h2>
+                    <div class="btn-group">
+                        <a href="{% url 'messaging:message_delete' message.pk %}" class="btn btn-danger btn-sm">
+                            <i class="fas fa-trash me-2"></i>Sil
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <table class="table">
+                                <tr>
+                                    <th>Gönderen:</th>
+                                    <td>{{ message.sender.get_full_name|default:message.sender.username }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Alıcı:</th>
+                                    <td>{{ message.recipient.get_full_name|default:message.recipient.username }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Tarih:</th>
+                                    <td>{{ message.created_at|naturaltime }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Durum:</th>
+                                    <td>
+                                        {% if message.is_read %}
+                                        <span class="badge bg-success">Okundu</span>
+                                        {% else %}
+                                        <span class="badge bg-warning">Okunmadı</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            {{ message.content|linebreaks }}
+                        </div>
+                    </div>
+
+                    {% if not message.is_read and message.recipient == request.user %}
+                    <form method="post" action="{% url 'messaging:message_mark_read' message.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check me-2"></i>Okundu Olarak İşaretle
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'messaging:message_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Mesaj Listesine Dön
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

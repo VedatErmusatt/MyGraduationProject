@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block title %}{{ exercise.name }} - Silme Onayı - Kronik Sağlık Uygulaması{% endblock %}
+
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="h4 mb-0">Egzersiz Silme Onayı</h2>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>{{ exercise.name }}</strong> egzersizini silmek istediğinizden emin misiniz?
+                        Bu işlem geri alınamaz.
+                    </div>
+
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Egzersiz Bilgileri</h5>
+                            <table class="table">
+                                <tr>
+                                    <th>Egzersiz Adı:</th>
+                                    <td>{{ exercise.name }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Tarih:</th>
+                                    <td>{{ exercise.date|date:"d.m.Y" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Süre:</th>
+                                    <td>{{ exercise.duration }} dakika</td>
+                                </tr>
+                                <tr>
+                                    <th>Kalori:</th>
+                                    <td>{{ exercise.calories_burned }} kcal</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'health_data:exercise_detail' exercise.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>İptal
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Sil
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+
+{% block title %}Acil Durum Kişisini Sil - Kronik Sağlık Uygulaması{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-6 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Acil Durum Kişisini Sil</h5>
+            </div>
+            <div class="card-body">
+                <p>Bu acil durum kişisini silmek istediğinizden emin misiniz?</p>
+                <div class="alert alert-warning">
+                    <h6>Kişi Bilgileri:</h6>
+                    <p class="mb-0">
+                        <strong>Ad Soyad:</strong> {{ emergency_contact.name }}<br>
+                        <strong>İlişki:</strong> {{ emergency_contact.relationship }}<br>
+                        <strong>Telefon:</strong> {{ emergency_contact.phone }}
+                    </p>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'core:emergency_contact_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> İptal
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Sil
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

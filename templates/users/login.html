@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+
+{% block title %}Giriş Yap - Kronik Sağlık Uygulaması{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-6 mx-auto">
+        <div class="card">
+            <div class="card-header text-center">
+                <h5 class="card-title mb-0">Giriş Yap</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="email" class="form-label">E-posta</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Şifre</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> Giriş Yap
+                        </button>
+                    </div>
+                </form>
+                <div class="mt-4 text-center">
+                    <p class="mb-2">Hesabınız yok mu?</p>
+                    <a href="{% url 'users:register' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-user-plus"></i> Kayıt Ol
+                    </a>
+                </div>
+                <hr>
+                <div class="text-center">
+                    <p class="mb-2">Şifrenizi mi unuttunuz?</p>
+                    <a href="{% url 'users:password_reset' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-key"></i> Şifremi Sıfırla
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

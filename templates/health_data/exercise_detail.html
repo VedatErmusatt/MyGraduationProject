@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block title %}{{ exercise.name }} - Kronik Sağlık Uygulaması{% endblock %}
+
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2 class="h4 mb-0">{{ exercise.name }}</h2>
+                    <div class="btn-group">
+                        <a href="{% url 'health_data:exercise_edit' exercise.pk %}" class="btn btn-warning btn-sm">
+                            <i class="fas fa-edit me-2"></i>Düzenle
+                        </a>
+                        <a href="{% url 'health_data:exercise_delete' exercise.pk %}" class="btn btn-danger btn-sm">
+                            <i class="fas fa-trash me-2"></i>Sil
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table">
+                                <tr>
+                                    <th>Egzersiz Adı:</th>
+                                    <td>{{ exercise.name }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Tarih:</th>
+                                    <td>{{ exercise.date|date:"d.m.Y" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Süre:</th>
+                                    <td>{{ exercise.duration }} dakika</td>
+                                </tr>
+                                <tr>
+                                    <th>Kalori:</th>
+                                    <td>{{ exercise.calories_burned }} kcal</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="card-title">Notlar</h5>
+                            {% if exercise.notes %}
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    {{ exercise.notes|linebreaks }}
+                                </div>
+                            </div>
+                            {% else %}
+                            <p class="text-muted">Not bulunmuyor.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'health_data:exercise_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Egzersiz Listesine Dön
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

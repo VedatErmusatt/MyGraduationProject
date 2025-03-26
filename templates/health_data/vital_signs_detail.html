@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load i18n %}
+{% load account socialaccount %}
+{% load humanize %}
+
+
+{% block title %}Vital Bulgu Detayı - Kronik Sağlık Uygulaması{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Vital Bulgu Detayı</h5>
+                <div>
+                    <a href="{% url 'health_data:vital_signs_edit' vital.id %}" class="btn btn-warning btn-sm">
+                        <i class="fas fa-edit"></i> Düzenle
+                    </a>
+                    <a href="{% url 'health_data:vital_signs_delete' vital.id %}" class="btn btn-danger btn-sm">
+                        <i class="fas fa-trash"></i> Sil
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table">
+                            <tr>
+                                <th>Tarih:</th>
+                                <td>{{ vital.date|date:"d.m.Y H:i" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Sistolik:</th>
+                                <td>{{ vital.blood_pressure_systolic }}</td>
+                            </tr>
+                            <tr>
+                                <th>Diastolik:</th>
+                                <td>{{ vital.blood_pressure_diastolic }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table">
+                            <tr>
+                                <th>Nabız:</th>
+                                <td>{{ vital.heart_rate }}</td>
+                            </tr>
+                            <tr>
+                                <th>Sıcaklık:</th>
+                                <td>{{ vital.temperature }}</td>
+                            </tr>
+                            <tr>
+                                <th>Kayıt Tarihi:</th>
+                                <td>{{ vital.created_at|date:"d.m.Y H:i" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                {% if vital.notes %}
+                <div class="mt-4">
+                    <h6>Notlar:</h6>
+                    <p>{{ vital.notes|linebreaks }}</p>
+                </div>
+                {% endif %}
+                <div class="mt-4">
+                    <a href="{% url 'health_data:vital_signs_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Geri Dön
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

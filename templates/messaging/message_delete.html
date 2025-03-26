@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load crispy_forms_tags %}
+
+
+{% block title %}{{ message.subject }} - Silme Onayı - Kronik Sağlık Uygulaması{% endblock %}
+
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="h4 mb-0">Mesaj Silme Onayı</h2>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>{{ message.subject }}</strong> mesajını silmek istediğinizden emin misiniz?
+                        Bu işlem geri alınamaz.
+                    </div>
+
+
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Mesaj Bilgileri</h5>
+                            <table class="table">
+                                <tr>
+                                    <th>Konu:</th>
+                                    <td>{{ message.subject }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Gönderen:</th>
+                                    <td>{{ message.sender.get_full_name|default:message.sender.username }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Alıcı:</th>
+                                    <td>{{ message.recipient.get_full_name|default:message.recipient.username }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Tarih:</th>
+                                    <td>{{ message.created_at|naturaltime }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'messaging:message_detail' message.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>İptal
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Sil
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

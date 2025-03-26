@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+
+{% block title %}{% if form.instance.pk %}Acil Durum Kişisini Düzenle{% else %}Yeni Acil Durum Kişisi{% endif %} - Kronik Sağlık Uygulaması{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    {% if form.instance.pk %}
+                    Acil Durum Kişisini Düzenle
+                    {% else %}
+                    Yeni Acil Durum Kişisi
+                    {% endif %}
+                </h5>
+                <div>
+                    <a href="{% url 'core:emergency_contact_list' %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Geri Dön
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Kaydet
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

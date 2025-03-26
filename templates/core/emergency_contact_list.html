@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block title %}Acil Durum Kişileri - Kronik Sağlık Uygulaması{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Acil Durum Kişileri</h5>
+                <div>
+                    <a href="{% url 'core:emergency_contact_add' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Yeni Kişi Ekle
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if emergency_contacts %}
+                    <div class="row">
+                        {% for contact in emergency_contacts %}
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h5 class="card-title">{{ contact.name }}</h5>
+                                            <p class="card-text">
+                                                <strong>İlişki:</strong> {{ contact.relationship }}<br>
+                                                <strong>Telefon:</strong> {{ contact.phone }}<br>
+                                                {% if contact.email %}
+                                                <strong>E-posta:</strong> {{ contact.email }}<br>
+                                                {% endif %}
+                                                {% if contact.address %}
+                                                <strong>Adres:</strong> {{ contact.address }}
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                        <div class="dropdown">
+                                            <button class="btn btn-link text-dark" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li>
+                                                    <a class="dropdown-item" href="{% url 'core:emergency_contact_edit' contact.pk %}">
+                                                        <i class="fas fa-edit"></i> Düzenle
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item text-danger" href="{% url 'core:emergency_contact_delete' contact.pk %}">
+                                                        <i class="fas fa-trash"></i> Sil
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-address-book fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Henüz acil durum kişisi eklenmemiş.</p>
+                        <a href="{% url 'core:emergency_contact_add' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Yeni Kişi Ekle
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load i18n %}
+{% load account socialaccount %}
+{% load humanize %}
+
+
+{% block title %}Vital Bulgu Sil - Kronik Sağlık Uygulaması{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-6 mx-auto">
+        <div class="card">
+            <div class="card-header text-center">
+                <h5 class="card-title mb-0">Vital Bulgu Sil</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-center">Bu vital bulgu kaydını silmek istediğinizden emin misiniz?</p>
+                <div class="table-responsive">
+                    <table class="table">
+                        <tr>
+                            <th>Tarih:</th>
+                            <td>{{ vital.date|date:"d.m.Y H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Sistolik:</th>
+                            <td>{{ vital.blood_pressure_systolic }}</td>
+                        </tr>
+                        <tr>
+                            <th>Diastolik:</th>
+                            <td>{{ vital.blood_pressure_diastolic }}</td>
+                        </tr>
+                        <tr>
+                            <th>Nabız:</th>
+                            <td>{{ vital.heart_rate }}</td>
+                        </tr>
+                        <tr>
+                            <th>Sıcaklık:</th>
+                            <td>{{ vital.temperature }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Sil
+                        </button>
+                        <a href="{% url 'health_data:vital_signs_detail' vital.id %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i> İptal
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

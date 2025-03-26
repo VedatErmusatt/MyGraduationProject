@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load markdown_extras %}
+
+
+{% block title %}{{ health_tip.title }} - Kronik Sağlık Uygulaması{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">{{ health_tip.title }}</h5>
+                <div>
+                    <a href="{% url 'core:health_tip_list' %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Geri Dön
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if health_tip.image %}
+                <div class="mb-4">
+                    <img src="{{ health_tip.image.url }}" class="img-fluid rounded" alt="{{ health_tip.title }}">
+                </div>
+                {% endif %}
+                <div class="mb-4">
+                    <small class="text-muted">Yayın Tarihi: {{ health_tip.created_at|date:"d.m.Y" }}</small>
+                </div>
+                <div class="health-tip-content">
+                    {{ health_tip.content|markdown|safe }}
+                </div>
+                {% if health_tip.tags.all %}
+                <div class="mt-4">
+                    <h6>Etiketler:</h6>
+                    <div class="tags">
+                        {% for tag in health_tip.tags.all %}
+                        <span class="badge bg-primary me-2">{{ tag.name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_css %}
+<style>
+.health-tip-content {
+    font-size: 1.1rem;
+    line-height: 1.8;
+}
+.health-tip-content h1,
+.health-tip-content h2,
+.health-tip-content h3,
+.health-tip-content h4,
+.health-tip-content h5,
+.health-tip-content h6 {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+.health-tip-content p {
+    margin-bottom: 1rem;
+}
+.health-tip-content ul,
+.health-tip-content ol {
+    margin-bottom: 1rem;
+    padding-left: 2rem;
+}
+.health-tip-content img {
+    max-width: 100%;
+    height: auto;
+    margin: 1rem 0;
+}
+.health-tip-content blockquote {
+    border-left: 4px solid #007bff;
+    padding-left: 1rem;
+    margin: 1rem 0;
+    font-style: italic;
+}
+</style>
+{% endblock %} 
