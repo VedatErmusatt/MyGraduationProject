@@ -4,11 +4,13 @@ from datetime import datetime, timedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.db.models import Avg, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import ExerciseForm, MedicationForm, SleepForm, VitalSignsForm
-from .models import Exercise, Medication, Sleep, VitalSigns
+from .forms import ExerciseForm, MedicationForm, MessageForm, SleepForm, VitalSignsForm
+from .models import Exercise, Medication, Message, Sleep, VitalSigns
+from .utils import send_message_notification_email
 
 
 # Vital Signs Views
@@ -301,3 +303,103 @@ def health_reports(request):
         "end_date": end_date,
     }
     return render(request, "health_data/health_reports.html", context)
+
+
+@login_required
+def message_list(request):
+    """Mesaj listesi görünümü"""
+    received_messages = Message.objects.filter(receiver=request.user).order_by("-created_at")
+    sent_messages = Message.objects.filter(sender=request.user).order_by("-created_at")
+
+    # Okunmamış mesaj sayısı
+    unread_count = received_messages.filter(is_read=False).count()
+
+    context = {
+        "received_messages": received_messages,
+        "sent_messages": sent_messages,
+        "unread_count": unread_count,
+    }
+    return render(request, "health_data/message_list.html", context)
+
+
+@login_required
+def message_detail(request, message_id):
+    """Mesaj detay görünümü"""
+    message = get_object_or_404(Message, id=message_id)
+
+    # Mesajı okundu olarak işaretle
+    if message.receiver == request.user and not message.is_read:
+        message.mark_as_read()
+
+    # Yanıtları getir
+    replies = Message.objects.filter(parent_message=message).order_by("created_at")
+
+    context = {
+        "message": message,
+        "replies": replies,
+    }
+    return render(request, "health_data/message_detail.html", context)
+
+
+@login_required
+def send_message(request, reply_to=None):
+    """Yeni mesaj gönderme veya yanıtlama görünümü"""
+    if reply_to:
+        parent_message = get_object_or_404(Message, id=reply_to)
+        # Yanıtlanan mesajın alıcısı veya göndereni olmalıyız
+        if request.user not in [parent_message.sender, parent_message.receiver]:
+            raise PermissionDenied
+        initial = {
+            "receiver": parent_message.sender if request.user == parent_message.receiver else parent_message.receiver,
+            "subject": f"Re: {parent_message.subject}",
+        }
+        is_reply = True
+    else:
+        parent_message = None
+        initial = {}
+        is_reply = False
+
+    if request.method == "POST":
+        form = MessageForm(request.POST)
+        if form.is_valid():
+            message = form.save(commit=False)
+            message.sender = request.user
+            if parent_message:
+                message.parent_message = parent_message
+            message.save()
+
+            # Email bildirimi gönder
+            try:
+                send_message_notification_email(message)
+            except Exception:
+                # Email gönderimi başarısız olsa bile mesaj kaydedildi
+                messages.warning(request, "Mesaj gönderildi fakat email bildirimi gönderilemedi.")
+
+            messages.success(request, "Mesajınız başarıyla gönderildi.")
+            return redirect("health_data:message_list")
+    else:
+        form = MessageForm(initial=initial)
+
+    context = {
+        "form": form,
+        "parent_message": parent_message,
+        "is_reply": is_reply,
+    }
+    return render(request, "health_data/message_form.html", context)
+
+
+@login_required
+def message_delete(request, message_id):
+    """Mesaj silme görünümü"""
+    message = get_object_or_404(Message, id=message_id)
+
+    # Sadece mesajın göndereni veya alıcısı silebilir
+    if message.sender != request.user and message.receiver != request.user:
+        raise PermissionDenied
+
+    if request.method == "POST":
+        message.delete()
+        messages.success(request, "Mesaj başarıyla silindi.")
+        return redirect("health_data:message_list")
+
+    return render(request, "health_data/message_confirm_delete.html", {"message": message})

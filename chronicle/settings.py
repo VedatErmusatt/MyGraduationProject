@@ -59,6 +59,8 @@ INSTALLED_APPS = [
     "users.apps.UsersConfig",
     "health_data.apps.HealthDataConfig",
     "messaging.apps.MessagingConfig",
+    "django_celery_beat",
+    "django_celery_results",
 ]
 
 MIDDLEWARE = [
@@ -85,6 +87,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "health_data.context_processors.unread_messages",  # Okunmamış mesaj sayısı
             ],
         },
     },
@@ -164,29 +167,85 @@ LOGIN_REDIRECT_URL = "dashboard"
 LOGOUT_REDIRECT_URL = "home"
 LOGIN_URL = "login"
 
-# Email settings (update these in production)
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# Email settings
+EMAIL_HOST = "smtp.gmail.com"  # Gmail için
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")  # Gmail adresiniz
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")  # Gmail uygulama şifreniz
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")  # Varsayılan gönderen email adresi
 
 # Site ID
 SITE_ID = 1
 
 # AllAuth settings
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = True
-ACCOUNT_AUTHENTICATION_METHOD = "email"
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
-ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 5
-ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
+ACCOUNT_RATE_LIMITS = {
+    "login_failed": {"limit": 5, "timeout": 300},  # 5 dakika içinde 5 başarısız giriş denemesi
+}
 
 # Celery settings
 CELERY_BROKER_URL = "redis://localhost:6379/0"
-CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
+CELERY_RESULT_BACKEND = "django-db"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
 
+# Celery Beat Settings
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+
 # CSRF ayarları
 CSRF_TRUSTED_ORIGINS = [
-    "https://6ec3-95-70-164-227.ngrok-free.app",
+    "https://*.ngrok-free.app",
 ]
+
+# Logging ayarları
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "style": "{",
+        },
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": os.path.join(BASE_DIR, "logs", "chronicle.log"),
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "health_data.tasks": {  # İlaç hatırlatma task'ları için
+            "handlers": ["console", "file"],
+            "level": "INFO",
+            "propagate": True,
+        },
+        "django.request": {  # Django request hataları için
+            "handlers": ["console", "file"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "django.security": {  # Güvenlik ile ilgili loglar için
+            "handlers": ["console", "file"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+    },
+}
+
+# Logs dizinini oluştur
+LOGS_DIR = os.path.join(BASE_DIR, "logs")
+if not os.path.exists(LOGS_DIR):
+    os.makedirs(LOGS_DIR)

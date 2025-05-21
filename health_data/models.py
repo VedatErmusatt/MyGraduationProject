@@ -1,6 +1,9 @@
+from datetime import datetime, time, timedelta
+
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils import timezone
 
 # Create your models here.
 
@@ -54,15 +57,30 @@ class VitalSigns(models.Model):
 
 
 class Medication(models.Model):
+    FREQUENCY_CHOICES = (
+        ("daily", "Günde Bir"),
+        ("twice_daily", "Günde İki"),
+        ("three_times_daily", "Günde Üç"),
+        ("four_times_daily", "Günde Dört"),
+        ("weekly", "Haftada Bir"),
+        ("custom", "Özel"),
+    )
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="medications")
     name = models.CharField(max_length=100, help_text="İlaç adı")
     dosage = models.CharField(max_length=50, help_text="Doz")
-    frequency = models.CharField(max_length=100, help_text="Kullanım sıklığı")
+    frequency = models.CharField(max_length=20, choices=FREQUENCY_CHOICES, help_text="Kullanım sıklığı")
+    custom_frequency = models.CharField(
+        max_length=100, blank=True, help_text="Özel kullanım sıklığı (örn: Her 8 saatte bir)"
+    )
     start_date = models.DateField(help_text="Başlangıç tarihi")
     end_date = models.DateField(null=True, blank=True, help_text="Bitiş tarihi")
     notes = models.TextField(blank=True)
-    reminder_time = models.TimeField(null=True, blank=True, help_text="Hatırlatma saati")
+    reminder_times = models.JSONField(default=list, help_text="Hatırlatma saatleri (HH:MM formatında)")
     is_active = models.BooleanField(default=True)
+    last_reminder_sent = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = "İlaç"
@@ -71,6 +89,55 @@ class Medication(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.user.username}"
+
+    def get_next_reminder_time(self):
+        """Bir sonraki hatırlatma zamanını hesapla"""
+        if not self.reminder_times or not self.is_active:
+            return None
+
+        now = timezone.now()
+        if self.end_date and now.date() > self.end_date:
+            return None
+
+        # Bugünün hatırlatma saatlerini kontrol et
+        today_reminders = []
+        for reminder_time in self.reminder_times:
+            hour, minute = map(int, reminder_time.split(":"))
+            reminder_datetime = timezone.make_aware(datetime.combine(now.date(), time(hour, minute)))
+            if reminder_datetime > now:
+                today_reminders.append(reminder_datetime)
+
+        if today_reminders:
+            return min(today_reminders)
+
+        # Bugün için hatırlatma kalmadıysa, yarının ilk hatırlatmasını döndür
+        tomorrow = now.date() + timedelta(days=1)
+        hour, minute = map(int, self.reminder_times[0].split(":"))
+        return timezone.make_aware(datetime.combine(tomorrow, time(hour, minute)))
+
+    def save(self, *args, **kwargs):
+        """Model kaydedilirken hatırlatma saatlerini otomatik ayarla ve hatırlatma görevi oluştur"""
+        is_new = self.pk is None
+
+        # Hatırlatma saatlerini ayarla
+        if self.frequency == "daily" and not self.reminder_times:
+            self.reminder_times = ["09:00"]
+        elif self.frequency == "twice_daily" and not self.reminder_times:
+            self.reminder_times = ["09:00", "21:00"]
+        elif self.frequency == "three_times_daily" and not self.reminder_times:
+            self.reminder_times = ["09:00", "14:00", "21:00"]
+        elif self.frequency == "four_times_daily" and not self.reminder_times:
+            self.reminder_times = ["08:00", "12:00", "16:00", "20:00"]
+        elif self.frequency == "weekly" and not self.reminder_times:
+            self.reminder_times = ["10:00"]
+
+        super().save(*args, **kwargs)
+
+        # İlaç aktifse ve başlangıç tarihi geçmişse hatırlatma görevi oluştur
+        if self.is_active and self.start_date <= timezone.now().date():
+            from .tasks import schedule_next_reminder
+
+            schedule_next_reminder(self)
 
 
 class Exercise(models.Model):
@@ -128,3 +195,68 @@ class Sleep(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.date}"
+
+
+class Message(models.Model):
+    """Doktor-hasta mesajlaşma ve hatırlatma modeli"""
+
+    MESSAGE_TYPES = (
+        ("chat", "Sohbet"),
+        ("reminder", "Hatırlatma"),
+    )
+
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="health_sent_messages")
+    receiver = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="health_received_messages"
+    )
+    subject = models.CharField(max_length=200, verbose_name="Konu")
+    content = models.TextField(verbose_name="Mesaj")
+    message_type = models.CharField(max_length=20, choices=MESSAGE_TYPES, default="chat", verbose_name="Mesaj Tipi")
+    related_medication = models.ForeignKey(
+        "Medication", on_delete=models.SET_NULL, null=True, blank=True, related_name="reminder_messages"
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Gönderilme Tarihi")
+    is_read = models.BooleanField(default=False, verbose_name="Okundu")
+    parent_message = models.ForeignKey(
+        "self", on_delete=models.SET_NULL, null=True, blank=True, related_name="health_replies"
+    )
+
+    class Meta:
+        verbose_name = "Mesaj"
+        verbose_name_plural = "Mesajlar"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.sender.get_full_name()} -> {self.receiver.get_full_name()}: {self.subject}"
+
+    def mark_as_read(self):
+        """Mesajı okundu olarak işaretle"""
+        self.is_read = True
+        self.save(update_fields=["is_read"])
+
+
+class Appointment(models.Model):
+    """Randevu modeli"""
+
+    patient = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="health_patient_appointments"
+    )
+    doctor = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="health_doctor_appointments"
+    )
+    date = models.DateTimeField(verbose_name="Randevu Tarihi")
+    notes = models.TextField(blank=True, verbose_name="Notlar")
+    is_active = models.BooleanField(default=True, verbose_name="Aktif")
+    notification_sent = models.BooleanField(default=False, verbose_name="Bildirim Gönderildi")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Oluşturulma Tarihi")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Güncellenme Tarihi")
+
+    class Meta:
+        verbose_name = "Randevu"
+        verbose_name_plural = "Randevular"
+        ordering = ["-date"]
+
+    def __str__(self):
+        return (
+            f"{self.patient.get_full_name()} - {self.doctor.get_full_name()} - {self.date.strftime('%d.%m.%Y %H:%M')}"
+        )

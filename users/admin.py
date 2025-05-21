@@ -15,10 +15,10 @@ class CustomUserAdmin(UserAdmin):
         "first_name",
         "last_name",
         "is_doctor",
-        "is_staff",
+        "is_superuser",
         "is_active",
     )
-    list_filter = ("is_doctor", "is_staff", "is_active", "gender")
+    list_filter = ("is_doctor", "is_superuser", "is_active", "gender")
     search_fields = ("email", "username", "first_name", "last_name")
     ordering = ("email",)
 

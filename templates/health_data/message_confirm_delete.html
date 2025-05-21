@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}Mesajı Sil - Kronik Sağlık Uygulaması{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card">
+        <div class="card-header">
+            <h1 class="h5 mb-0">Mesajı Sil</h1>
+        </div>
+        <div class="card-body">
+            <p class="mb-4">Bu mesajı silmek istediğinizden emin misiniz?</p>
+            
+            <div class="alert alert-warning">
+                <h6 class="alert-heading">Mesaj Detayları</h6>
+                <p class="mb-0">
+                    <strong>Konu:</strong> {{ message.subject }}<br>
+                    <strong>Kimden:</strong> {{ message.sender.get_full_name|default:message.sender.email }}<br>
+                    <strong>Kime:</strong> {{ message.receiver.get_full_name|default:message.receiver.email }}<br>
+                    <strong>Tarih:</strong> {{ message.created_at|date:"d.m.Y H:i" }}
+                </p>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash me-2"></i>Evet, Sil
+                </button>
+                <a href="{% url 'health_data:message_detail' message.id %}" class="btn btn-secondary">
+                    <i class="fas fa-times me-2"></i>İptal
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,7 +1,8 @@
 from django import forms
+from django.contrib.auth import get_user_model
 from django.utils import timezone
 
-from .models import Exercise, Medication, Sleep, VitalSigns
+from .models import Exercise, Medication, Message, Sleep, VitalSigns
 
 
 class VitalSignsForm(forms.ModelForm):
@@ -20,14 +21,92 @@ class VitalSignsForm(forms.ModelForm):
 
 
 class MedicationForm(forms.ModelForm):
+    reminder_times_str = forms.CharField(
+        label="Hatırlatma Saatleri",
+        help_text="Her bir saati HH:MM formatında girin. Birden fazla saat için virgül ile ayırın. (Örn: 08:00, 13:30, 19:51)",
+        required=False,
+    )
+
     class Meta:
         model = Medication
-        fields = ["name", "dosage", "frequency", "start_date", "end_date", "notes"]
+        fields = ["name", "dosage", "frequency", "start_date", "end_date", "notes", "is_active"]
         widgets = {
-            "notes": forms.Textarea(attrs={"rows": 3}),
-            "start_date": forms.DateInput(attrs={"type": "date"}),
-            "end_date": forms.DateInput(attrs={"type": "date"}),
+            "notes": forms.Textarea(attrs={"rows": 3, "class": "form-control"}),
+            "start_date": forms.DateInput(
+                attrs={
+                    "type": "date",
+                    "class": "form-control",
+                    "data-date-format": "YYYY-MM-DD",
+                }
+            ),
+            "end_date": forms.DateInput(
+                attrs={
+                    "type": "date",
+                    "class": "form-control",
+                    "data-date-format": "YYYY-MM-DD",
+                }
+            ),
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "dosage": forms.TextInput(attrs={"class": "form-control"}),
+            "frequency": forms.Select(attrs={"class": "form-control"}),
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
+        labels = {
+            "name": "İlaç Adı",
+            "dosage": "Doz",
+            "frequency": "Kullanım Sıklığı",
+            "start_date": "Başlangıç Tarihi",
+            "end_date": "Bitiş Tarihi",
+            "notes": "Notlar",
+            "is_active": "Aktif",
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Mevcut saatleri string olarak göster
+        if self.instance and self.instance.reminder_times:
+            self.fields["reminder_times_str"].initial = ", ".join(self.instance.reminder_times)
+
+        # Yeni kayıt için başlangıç tarihini bugün olarak ayarla
+        if not self.instance.pk:
+            self.initial["start_date"] = timezone.now().date()
+        else:
+            # Mevcut kayıt için tarihleri formatla
+            if self.instance.start_date:
+                self.initial["start_date"] = self.instance.start_date.strftime("%Y-%m-%d")
+            if self.instance.end_date:
+                self.initial["end_date"] = self.instance.end_date.strftime("%Y-%m-%d")
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get("start_date")
+        end_date = cleaned_data.get("end_date")
+
+        if start_date and end_date and end_date < start_date:
+            raise forms.ValidationError("Bitiş tarihi başlangıç tarihinden önce olamaz.")
+
+        return cleaned_data
+
+    def clean_reminder_times_str(self):
+        value = self.cleaned_data["reminder_times_str"]
+        if not value:
+            return []
+        times = [t.strip() for t in value.split(",") if t.strip()]
+        # Basit saat formatı kontrolü
+        for t in times:
+            try:
+                hour, minute = map(int, t.split(":"))
+                assert 0 <= hour < 24 and 0 <= minute < 60
+            except Exception:
+                raise forms.ValidationError("Saatler HH:MM formatında olmalı (örn: 19:51)")
+        return times
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.reminder_times = self.cleaned_data["reminder_times_str"]
+        if commit:
+            instance.save()
+        return instance
 
 
 class ExerciseForm(forms.ModelForm):
@@ -84,3 +163,35 @@ class SleepForm(forms.ModelForm):
             cleaned_data["duration"] = round(duration, 2)
 
         return cleaned_data
+
+
+class MessageForm(forms.ModelForm):
+    class Meta:
+        model = Message
+        fields = ["receiver", "subject", "content"]
+        widgets = {
+            "receiver": forms.Select(attrs={"class": "form-control"}),
+            "subject": forms.TextInput(attrs={"class": "form-control"}),
+            "content": forms.Textarea(attrs={"class": "form-control", "rows": 5}),
+        }
+        labels = {
+            "receiver": "Alıcı",
+            "subject": "Konu",
+            "content": "Mesaj",
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
+        self.is_reply = kwargs.pop("is_reply", False)
+        super().__init__(*args, **kwargs)
+        User = get_user_model()
+
+        if self.is_reply:
+            # Yanıtlama durumunda alıcı alanını gizle
+            del self.fields["receiver"]
+        else:
+            # Normal mesaj gönderme durumunda sadece doktorları listele
+            self.fields["receiver"].queryset = User.objects.filter(groups__name="Doktorlar")
+            if self.user:
+                # Kendisini alıcı listesinden çıkar
+                self.fields["receiver"].queryset = self.fields["receiver"].queryset.exclude(id=self.user.id)

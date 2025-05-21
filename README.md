@@ -22,3 +22,7 @@ Proje çalıştırılır.
 ```bash
 uv run python manage.py runserver
 ```
+
+
+celery -A chronicle.celery worker -l INFO -f app.log --beat
+

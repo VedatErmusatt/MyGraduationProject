@@ -53,6 +53,14 @@
                                 <i class="fas fa-moon me-2"></i>Uyku
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'health_data:message_list' %}">
+                                Mesajlar
+                                {% if unread_message_count > 0 %}
+                                <span class="badge bg-danger rounded-pill">{{ unread_message_count }}</span>
+                                {% endif %}
+                            </a>
+                        </li>
                     {% endif %}
                 </ul>
                 <ul class="navbar-nav">

@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load i18n %}
+
+{% block title %}Mesajlar - Kronik Sağlık Uygulaması{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Mesajlar</h1>
+        <a href="{% url 'health_data:message_send' %}" class="btn btn-primary">
+            <i class="fas fa-paper-plane me-2"></i>Yeni Mesaj
+        </a>
+    </div>
+
+    {% if unread_count > 0 %}
+    <div class="alert alert-info">
+        <i class="fas fa-envelope me-2"></i>{{ unread_count }} okunmamış mesajınız var.
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- Gelen Mesajlar -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h2 class="h5 mb-0">Gelen Mesajlar</h2>
+                </div>
+                <div class="card-body">
+                    {% if received_messages %}
+                    <div class="list-group">
+                        {% for message in received_messages %}
+                        <a href="{% url 'health_data:message_detail' message.id %}" 
+                           class="list-group-item list-group-item-action {% if not message.is_read %}fw-bold{% endif %}">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">
+                                    {% if not message.is_read %}
+                                    <span class="badge bg-primary me-2">Yeni</span>
+                                    {% endif %}
+                                    {{ message.subject }}
+                                </h6>
+                                <small>{{ message.created_at|naturaltime }}</small>
+                            </div>
+                            <p class="mb-1 text-muted">
+                                <i class="fas fa-user me-2"></i>{{ message.sender.get_full_name|default:message.sender.email }}
+                            </p>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0">Henüz gelen mesajınız yok.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Gönderilen Mesajlar -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h2 class="h5 mb-0">Gönderilen Mesajlar</h2>
+                </div>
+                <div class="card-body">
+                    {% if sent_messages %}
+                    <div class="list-group">
+                        {% for message in sent_messages %}
+                        <a href="{% url 'health_data:message_detail' message.id %}" 
+                           class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ message.subject }}</h6>
+                                <small>{{ message.created_at|naturaltime }}</small>
+                            </div>
+                            <p class="mb-1 text-muted">
+                                <i class="fas fa-user me-2"></i>{{ message.receiver.get_full_name|default:message.receiver.email }}
+                            </p>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0">Henüz gönderilen mesajınız yok.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
