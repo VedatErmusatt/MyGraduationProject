@@ -13,42 +13,65 @@
 
 {% block content %}
 <div class="container py-4">
-    <div class="card">
-        <div class="card-header">
-            <h1 class="h5 mb-0">
-                {% if parent_message %}
-                    <i class="fas fa-reply me-2"></i>Yanıt: {{ parent_message.subject }}
-                {% else %}
-                    <i class="fas fa-paper-plane me-2"></i>Yeni Mesaj
-                {% endif %}
-            </h1>
-        </div>
-        <div class="card-body">
-            {% if parent_message %}
-            <div class="alert alert-info mb-4">
-                <h6 class="alert-heading">Orijinal Mesaj</h6>
-                <p class="mb-0">
-                    <strong>Kimden:</strong> {{ parent_message.sender.get_full_name|default:parent_message.sender.email }}<br>
-                    <strong>Tarih:</strong> {{ parent_message.created_at|date:"d.m.Y H:i" }}<br>
-                    <strong>Mesaj:</strong><br>
-                    {{ parent_message.content|linebreaks }}
-                </p>
-            </div>
-            {% endif %}
-
-            <form method="post">
-                {% csrf_token %}
-                {{ form|crispy }}
-                <div class="mt-4">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-paper-plane me-2"></i>Gönder
-                    </button>
-                    <a href="{% url 'health_data:message_list' %}" class="btn btn-secondary">
-                        <i class="fas fa-times me-2"></i>İptal
-                    </a>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-0">
+                    <h1 class="h4 fw-bold mb-0 text-primary">
+                        {% if parent_message %}
+                            <i class="fas fa-reply me-2"></i>Yanıt: {{ parent_message.subject }}
+                        {% else %}
+                            <i class="fas fa-paper-plane me-2"></i>Yeni Mesaj
+                        {% endif %}
+                    </h1>
                 </div>
-            </form>
+                <div class="card-body">
+                    {% if parent_message %}
+                    <div class="alert alert-info shadow-sm mb-4">
+                        <h6 class="alert-heading fw-bold mb-2">Orijinal Mesaj</h6>
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="avatar-circle bg-primary text-white me-3">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div>
+                                <div class="fw-semibold">{{ parent_message.sender.get_full_name|default:parent_message.sender.email }}</div>
+                                <div class="text-muted small">
+                                    <i class="fas fa-clock me-1"></i>{{ parent_message.created_at|date:"d.m.Y H:i" }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="message-content p-3 bg-light rounded">
+                            {{ parent_message.content|linebreaks }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'health_data:message_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>İptal
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i>Gönder
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+</style>
 {% endblock %} 

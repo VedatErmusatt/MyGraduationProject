@@ -1,23 +1,11 @@
+from typing import Type
+
 from django import forms
 from django.contrib.auth import get_user_model
+from django.forms import inlineformset_factory
 from django.utils import timezone
 
-from .models import Exercise, Medication, Message, Sleep, VitalSigns
-
-
-class VitalSignsForm(forms.ModelForm):
-    class Meta:
-        model = VitalSigns
-        fields = [
-            "blood_pressure_systolic",
-            "blood_pressure_diastolic",
-            "heart_rate",
-            "temperature",
-            "notes",
-        ]
-        widgets = {
-            "notes": forms.Textarea(attrs={"rows": 3}),
-        }
+from .models import BloodTestResult, Exercise, HospitalRecord, LabTestResult, Medication, Message, Sleep
 
 
 class MedicationForm(forms.ModelForm):
@@ -195,3 +183,28 @@ class MessageForm(forms.ModelForm):
             if self.user:
                 # Kendisini alıcı listesinden çıkar
                 self.fields["receiver"].queryset = self.fields["receiver"].queryset.exclude(id=self.user.id)
+
+
+class HospitalRecordForm(forms.ModelForm):
+    class Meta:
+        model = HospitalRecord
+        fields = ["record_type", "date", "title", "description", "results", "notes"]
+        widgets = {
+            "date": forms.DateInput(attrs={"type": "date"}),
+            "description": forms.Textarea(attrs={"rows": 3}),
+            "results": forms.Textarea(attrs={"rows": 3}),
+            "notes": forms.Textarea(attrs={"rows": 2}),
+        }
+
+
+BloodTestResultFormSet: Type[forms.models.BaseInlineFormSet] = inlineformset_factory(
+    HospitalRecord,
+    BloodTestResult,
+    fields=["parameter", "value", "unit", "reference_range", "is_abnormal"],
+    extra=1,
+    can_delete=True,
+)
+
+LabTestResultFormSet: Type[forms.models.BaseInlineFormSet] = inlineformset_factory(
+    HospitalRecord, LabTestResult, fields=["test_name", "result", "interpretation"], extra=1, can_delete=True
+)

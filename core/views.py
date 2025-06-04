@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
-from health_data.models import Exercise, Medication, Sleep, VitalSigns
+from health_data.models import Exercise, Medication, Sleep
 
 from .forms import EmergencyContactForm
 from .models import EmergencyContact, HealthTip, Notification
@@ -21,14 +21,6 @@ def home(request):
 @login_required
 def dashboard(request):
     """Ana dashboard sayfası"""
-    # Son 7 günün vital bulguları
-    vital_signs = VitalSigns.objects.filter(user=request.user).order_by("-date")[:7]
-    print(f"Kullanıcı: {request.user.email}")
-    print(f"Vital bulgu sayısı: {vital_signs.count()}")
-    print(
-        f"Vital bulgular: {list(vital_signs.values('date', 'blood_pressure_systolic', 'blood_pressure_diastolic', 'heart_rate', 'temperature'))}"
-    )
-
     # Aktif ilaçlar
     medications = Medication.objects.filter(user=request.user, is_active=True)
     print(f"Aktif ilaç sayısı: {medications.count()}")
@@ -42,7 +34,6 @@ def dashboard(request):
     print(f"Uyku kaydı sayısı: {sleep_records.count()}")
 
     context = {
-        "vital_signs": vital_signs,
         "medications": medications,
         "exercises": exercises,
         "sleep_records": sleep_records,

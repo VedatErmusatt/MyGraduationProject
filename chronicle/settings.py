@@ -178,6 +178,9 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")  # Varsayılan gönderen em
 # Site ID
 SITE_ID = 1
 
+# Site Domain
+SITE_DOMAIN = os.getenv("SITE_DOMAIN", "127.0.0.1:8000")
+
 # AllAuth settings
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]

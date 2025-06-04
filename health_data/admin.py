@@ -3,7 +3,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Appointment, Exercise, Medication, Message, Sleep, VitalSigns
+from .models import Appointment, Exercise, Medication, Message, Sleep
 
 
 @admin.register(Message)
@@ -41,21 +41,6 @@ class AppointmentAdmin(admin.ModelAdmin):
     list_filter = ("is_active", "notification_sent", "date")
     search_fields = ("patient__email", "doctor__email", "notes")
     date_hierarchy = "date"
-
-
-@admin.register(VitalSigns)
-class VitalSignsAdmin(admin.ModelAdmin):
-    list_display = ("user", "date", "blood_pressure", "heart_rate", "temperature", "blood_sugar")
-    list_filter = ("date",)
-    search_fields = ("user__email", "notes")
-    date_hierarchy = "date"
-
-    def blood_pressure(self, obj):
-        if obj.blood_pressure_systolic and obj.blood_pressure_diastolic:
-            return f"{obj.blood_pressure_systolic}/{obj.blood_pressure_diastolic}"
-        return "-"
-
-    blood_pressure.short_description = "Tansiyon"
 
 
 @admin.register(Exercise)

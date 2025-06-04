@@ -7,61 +7,49 @@
 
 {% block title %}{{ sleep.date|date:"d.m.Y" }} - Uyku Kaydı - Kronik Sağlık Uygulaması{% endblock %}
 {% block content %}
-<div class="container py-4">
+<div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h2 class="h4 mb-0">{{ sleep.date|date:"d.m.Y" }} - Uyku Kaydı</h2>
-                    <div class="btn-group">
-                        <a href="{% url 'health_data:sleep_edit' sleep.pk %}" class="btn btn-warning btn-sm">
-                            <i class="fas fa-edit me-2"></i>Düzenle
-                        </a>
-                        <a href="{% url 'health_data:sleep_delete' sleep.pk %}" class="btn btn-danger btn-sm">
-                            <i class="fas fa-trash me-2"></i>Sil
-                        </a>
-                    </div>
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-0 d-flex align-items-center">
+                    <i class="fas fa-moon fa-2x text-primary me-3"></i>
+                    <h1 class="h4 fw-bold text-primary mb-0">{{ sleep.date|date:"d.m.Y" }} - Uyku Kaydı</h1>
                 </div>
                 <div class="card-body">
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <table class="table">
-                                <tr>
-                                    <th>Tarih:</th>
-                                    <td>{{ sleep.date|date:"d.m.Y" }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Uyku Saati:</th>
-                                    <td>{{ sleep.sleep_time|time:"H:i" }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Uyanma Saati:</th>
-                                    <td>{{ sleep.wake_time|time:"H:i" }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Süre:</th>
-                                    <td>{{ sleep.duration }} saat</td>
-                                </tr>
-                                <tr>
-                                    <th>Kalite:</th>
-                                    <td>
-                                        {% if sleep.quality == 5 %}
-                                        <span class="badge bg-success">Çok İyi</span>
-                                        {% elif sleep.quality == 4 %}
-                                        <span class="badge bg-info">İyi</span>
-                                        {% elif sleep.quality == 3 %}
-                                        <span class="badge bg-warning">Orta</span>
-                                        {% elif sleep.quality == 2 %}
-                                        <span class="badge bg-danger">Kötü</span>
-                                        {% else %}
-                                        <span class="badge bg-secondary">Çok Kötü</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-
+                    <table class="table mb-4">
+                        <tr>
+                            <th class="text-muted">Tarih:</th>
+                            <td>{{ sleep.date|date:"d.m.Y" }}</td>
+                        </tr>
+                        <tr>
+                            <th class="text-muted">Uyku Saati:</th>
+                            <td>{{ sleep.sleep_time|time:"H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <th class="text-muted">Uyanma Saati:</th>
+                            <td>{{ sleep.wake_time|time:"H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <th class="text-muted">Süre:</th>
+                            <td>{{ sleep.duration }} saat</td>
+                        </tr>
+                        <tr>
+                            <th class="text-muted">Kalite:</th>
+                            <td>
+                                {% if sleep.quality == 5 %}
+                                <span class="badge bg-success">Çok İyi</span>
+                                {% elif sleep.quality == 4 %}
+                                <span class="badge bg-info">İyi</span>
+                                {% elif sleep.quality == 3 %}
+                                <span class="badge bg-warning">Orta</span>
+                                {% elif sleep.quality == 2 %}
+                                <span class="badge bg-danger">Kötü</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Çok Kötü</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
                     <div class="card bg-light mb-4">
                         <div class="card-body">
                             <h5 class="card-title">Notlar</h5>
@@ -72,11 +60,17 @@
                             {% endif %}
                         </div>
                     </div>
-                </div>
-                <div class="card-footer">
-                    <a href="{% url 'health_data:sleep_list' %}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left me-2"></i>Uyku Listesine Dön
-                    </a>
+                    <div class="text-end">
+                        <a href="{% url 'health_data:sleep_edit' sleep.pk %}" class="btn btn-warning">
+                            <i class="fas fa-edit me-2"></i>Düzenle
+                        </a>
+                        <a href="{% url 'health_data:sleep_delete' sleep.pk %}" class="btn btn-danger ms-2">
+                            <i class="fas fa-trash me-2"></i>Sil
+                        </a>
+                        <a href="{% url 'health_data:sleep_list' %}" class="btn btn-secondary ms-2">
+                            <i class="fas fa-arrow-left me-2"></i>Uyku Listesine Dön
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

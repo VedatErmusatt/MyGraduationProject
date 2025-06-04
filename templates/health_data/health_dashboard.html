@@ -9,224 +9,364 @@
 
 {% block content %}
 <div class="container py-4">
-    <h1 class="h3 mb-4">Sağlık Paneli</h1>
+    <h1 class="h3 fw-bold mb-4 text-primary">
+        <i class="fas fa-chart-line me-2"></i>{% trans "Sağlık Göstergeleri" %}
+    </h1>
 
-    <!-- Debug Bilgisi -->
-    <div class="alert alert-info mb-4">
-        <p>Debug Bilgisi:</p>
-        <p>Vital Bulgular: {{ vitals|length }}</p>
-        <p>İlaçlar: {{ medications|length }}</p>
-        <p>Egzersizler: {{ exercises|length }}</p>
-        <p>Uyku Kayıtları: {{ sleeps|length }}</p>
+    <!-- Aktif İlaçlar -->
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-header bg-white border-0">
+            <h2 class="h5 fw-bold mb-0 text-primary">
+                <i class="fas fa-pills me-2"></i>{% trans "Aktif İlaçlar" %}
+            </h2>
+        </div>
+        <div class="card-body">
+            {% if medications %}
+            <div class="row g-3">
+                {% for medication in medications %}
+                <div class="col-md-6">
+                    <div class="card bg-light h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h3 class="h6 fw-bold mb-1">{{ medication.name }}</h3>
+                                    <p class="text-muted small mb-1">{{ medication.dosage }}</p>
+                                    <p class="text-muted small mb-0">{{ medication.frequency }}</p>
+                                </div>
+                                <div class="text-muted small text-end">
+                                    {{ medication.start_date|date:"d.m.Y" }} - 
+                                    {% if medication.end_date %}
+                                    {{ medication.end_date|date:"d.m.Y" }}
+                                    {% else %}
+                                    {% trans "Devam ediyor" %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="alert alert-info text-center shadow-sm py-4 rounded-3">
+                <i class="fas fa-info-circle fa-2x mb-2 text-primary"></i><br>
+                <span class="fs-5">{% trans "Aktif ilaç bulunmuyor." %}</span>
+            </div>
+            {% endif %}
+        </div>
     </div>
 
-    <div class="row">
-        <!-- Vital Bulgular -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h2 class="h5 mb-0">Vital Bulgular</h2>
-                    <a href="{% url 'health_data:vital_signs_add' %}" class="btn btn-primary btn-sm">
-                        <i class="fas fa-plus me-2"></i>Yeni Kayıt
-                    </a>
-                </div>
-                <div class="card-body">
-                    {% if vitals %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Tarih</th>
-                                    <th>Tansiyon</th>
-                                    <th>Nabız</th>
-                                    <th>Sıcaklık</th>
-                                    <th>İşlemler</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for vital in vitals %}
-                                <tr>
-                                    <td>{{ vital.date|date:"d.m.Y" }}</td>
-                                    <td>{{ vital.blood_pressure_systolic }}/{{ vital.blood_pressure_diastolic }}</td>
-                                    <td>{{ vital.heart_rate }}</td>
-                                    <td>{{ vital.temperature }}°C</td>
-                                    <td>
-                                        <div class="btn-group">
-                                            <a href="{% url 'health_data:vital_signs_detail' vital.pk %}" class="btn btn-sm btn-info">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{% url 'health_data:vital_signs_edit' vital.pk %}" class="btn btn-sm btn-warning">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <p class="text-muted mb-0">Henüz vital bulgu kaydı yok.</p>
-                    {% endif %}
-                </div>
-            </div>
+    <!-- Son Egzersizler -->
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-header bg-white border-0">
+            <h2 class="h5 fw-bold mb-0 text-primary">
+                <i class="fas fa-running me-2"></i>{% trans "Son Egzersizler" %}
+            </h2>
         </div>
-
-        <!-- İlaçlar -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h2 class="h5 mb-0">Aktif İlaçlar</h2>
-                    <a href="{% url 'health_data:medication_add' %}" class="btn btn-primary btn-sm">
-                        <i class="fas fa-plus me-2"></i>Yeni İlaç
-                    </a>
-                </div>
-                <div class="card-body">
-                    {% if medications %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>İlaç Adı</th>
-                                    <th>Doz</th>
-                                    <th>Kullanım</th>
-                                    <th>İşlemler</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for medication in medications %}
-                                <tr>
-                                    <td>{{ medication.name }}</td>
-                                    <td>{{ medication.dosage }}</td>
-                                    <td>{{ medication.frequency }}</td>
-                                    <td>
-                                        <div class="btn-group">
-                                            <a href="{% url 'health_data:medication_detail' medication.pk %}" class="btn btn-sm btn-info">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{% url 'health_data:medication_edit' medication.pk %}" class="btn btn-sm btn-warning">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+        <div class="card-body">
+            {% if exercises %}
+            <div class="row g-3">
+                {% for exercise in exercises %}
+                <div class="col-md-6">
+                    <div class="card bg-light h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h3 class="h6 fw-bold mb-1">{{ exercise.type }}</h3>
+                                    <p class="text-muted small mb-1">{{ exercise.duration }} dakika</p>
+                                    <p class="text-muted small mb-0">{{ exercise.calories_burned }} kalori</p>
+                                </div>
+                                <div class="text-muted small">
+                                    {{ exercise.date|date:"d.m.Y" }}
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    {% else %}
-                    <p class="text-muted mb-0">Aktif ilaç bulunmuyor.</p>
-                    {% endif %}
                 </div>
+                {% endfor %}
             </div>
-        </div>
-
-        <!-- Egzersizler -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h2 class="h5 mb-0">Son Egzersizler</h2>
-                    <a href="{% url 'health_data:exercise_add' %}" class="btn btn-primary btn-sm">
-                        <i class="fas fa-plus me-2"></i>Yeni Egzersiz
-                    </a>
-                </div>
-                <div class="card-body">
-                    {% if exercises %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Tarih</th>
-                                    <th>Tür</th>
-                                    <th>Süre</th>
-                                    <th>İşlemler</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for exercise in exercises %}
-                                <tr>
-                                    <td>{{ exercise.date|date:"d.m.Y" }}</td>
-                                    <td>{{ exercise.type }}</td>
-                                    <td>{{ exercise.duration }} dk</td>
-                                    <td>
-                                        <div class="btn-group">
-                                            <a href="{% url 'health_data:exercise_detail' exercise.pk %}" class="btn btn-sm btn-info">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{% url 'health_data:exercise_edit' exercise.pk %}" class="btn btn-sm btn-warning">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <p class="text-muted mb-0">Henüz egzersiz kaydı yok.</p>
-                    {% endif %}
-                </div>
+            {% else %}
+            <div class="alert alert-info text-center shadow-sm py-4 rounded-3">
+                <i class="fas fa-info-circle fa-2x mb-2 text-primary"></i><br>
+                <span class="fs-5">{% trans "Son 7 günde egzersiz kaydı bulunmuyor." %}</span>
             </div>
+            {% endif %}
         </div>
+    </div>
 
-        <!-- Uyku Kayıtları -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h2 class="h5 mb-0">Son Uyku Kayıtları</h2>
-                    <a href="{% url 'health_data:sleep_add' %}" class="btn btn-primary btn-sm">
-                        <i class="fas fa-plus me-2"></i>Yeni Kayıt
-                    </a>
-                </div>
-                <div class="card-body">
-                    {% if sleeps %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Tarih</th>
-                                    <th>Süre</th>
-                                    <th>Kalite</th>
-                                    <th>İşlemler</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for sleep in sleeps %}
-                                <tr>
-                                    <td>{{ sleep.date|date:"d.m.Y" }}</td>
-                                    <td>{{ sleep.duration }} saat</td>
-                                    <td>
-                                        {% if sleep.quality == 5 %}
-                                        <span class="badge bg-success">Çok İyi</span>
-                                        {% elif sleep.quality == 4 %}
-                                        <span class="badge bg-info">İyi</span>
-                                        {% elif sleep.quality == 3 %}
-                                        <span class="badge bg-warning">Orta</span>
-                                        {% elif sleep.quality == 2 %}
-                                        <span class="badge bg-danger">Kötü</span>
-                                        {% else %}
-                                        <span class="badge bg-secondary">Çok Kötü</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <div class="btn-group">
-                                            <a href="{% url 'health_data:sleep_detail' sleep.pk %}" class="btn btn-sm btn-info">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{% url 'health_data:sleep_edit' sleep.pk %}" class="btn btn-sm btn-warning">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+    <!-- Son Uyku Kayıtları -->
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-header bg-white border-0">
+            <h2 class="h5 fw-bold mb-0 text-primary">
+                <i class="fas fa-moon me-2"></i>{% trans "Son Uyku Kayıtları" %}
+            </h2>
+        </div>
+        <div class="card-body">
+            {% if sleeps %}
+            <div class="row g-3">
+                {% for sleep in sleeps %}
+                <div class="col-md-6">
+                    <div class="card bg-light h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h3 class="h6 fw-bold mb-1">
+                                        {{ sleep.start_time|date:"H:i" }} - {{ sleep.end_time|date:"H:i" }}
+                                    </h3>
+                                    <p class="text-muted small mb-1">{{ sleep.duration }} saat</p>
+                                    <p class="text-muted small mb-0">{% trans "Kalite" %}: {{ sleep.get_quality_display }}</p>
+                                </div>
+                                <div class="text-muted small">
+                                    {{ sleep.date|date:"d.m.Y" }}
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    {% else %}
-                    <p class="text-muted mb-0">Henüz uyku kaydı yok.</p>
-                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="alert alert-info text-center shadow-sm py-4 rounded-3">
+                <i class="fas fa-info-circle fa-2x mb-2 text-primary"></i><br>
+                <span class="fs-5">{% trans "Son 7 günde uyku kaydı bulunmuyor." %}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Son Hastane Kayıtları -->
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+            <h2 class="h5 fw-bold mb-0 text-primary">
+                <i class="fas fa-hospital me-2"></i>{% trans "Son Hastane Kayıtları" %}
+            </h2>
+            <a href="{% url 'health_data:hospital_record_list' %}" class="btn btn-link text-primary p-0">
+                {% trans "Tümünü Gör" %} <i class="fas fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+        <div class="card-body">
+            {% if hospital_records %}
+            <div class="accordion" id="hospitalRecordsAccordion">
+                <!-- Müdahaleler -->
+                {% if recent_records.interventions %}
+                <div class="accordion-item border-0 mb-3">
+                    <h3 class="accordion-header">
+                        <button class="accordion-button collapsed bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#interventionsCollapse">
+                            <i class="fas fa-procedures me-2"></i>{% trans "Müdahaleler" %}
+                        </button>
+                    </h3>
+                    <div id="interventionsCollapse" class="accordion-collapse collapse" data-bs-parent="#hospitalRecordsAccordion">
+                        <div class="accordion-body p-0">
+                            {% for record in recent_records.interventions %}
+                            <div class="card bg-light mb-2">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h4 class="h6 fw-bold mb-1">{{ record.title }}</h4>
+                                            <p class="text-muted small mb-1">{{ record.hospital_name }}</p>
+                                            <p class="text-muted small mb-0">{{ record.doctor.get_full_name }}</p>
+                                        </div>
+                                        <div class="text-muted small">
+                                            {{ record.date|date:"d.m.Y" }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Röntgenler -->
+                {% if recent_records.xrays %}
+                <div class="accordion-item border-0 mb-3">
+                    <h3 class="accordion-header">
+                        <button class="accordion-button collapsed bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#xraysCollapse">
+                            <i class="fas fa-x-ray me-2"></i>{% trans "Röntgenler" %}
+                        </button>
+                    </h3>
+                    <div id="xraysCollapse" class="accordion-collapse collapse" data-bs-parent="#hospitalRecordsAccordion">
+                        <div class="accordion-body p-0">
+                            {% for record in recent_records.xrays %}
+                            <div class="card bg-light mb-2">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h4 class="h6 fw-bold mb-1">{{ record.title }}</h4>
+                                            <p class="text-muted small mb-1">{{ record.hospital_name }}</p>
+                                            <p class="text-muted small mb-0">{{ record.doctor.get_full_name }}</p>
+                                        </div>
+                                        <div class="text-muted small">
+                                            {{ record.date|date:"d.m.Y" }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Kan Testleri -->
+                {% if recent_records.blood_tests %}
+                <div class="accordion-item border-0 mb-3">
+                    <h3 class="accordion-header">
+                        <button class="accordion-button collapsed bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#bloodTestsCollapse">
+                            <i class="fas fa-vial me-2"></i>{% trans "Kan Testleri" %}
+                        </button>
+                    </h3>
+                    <div id="bloodTestsCollapse" class="accordion-collapse collapse" data-bs-parent="#hospitalRecordsAccordion">
+                        <div class="accordion-body p-0">
+                            {% for record in recent_records.blood_tests %}
+                            <div class="card bg-light mb-2">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h4 class="h6 fw-bold mb-1">{{ record.title }}</h4>
+                                            <p class="text-muted small mb-1">{{ record.hospital_name }}</p>
+                                            <p class="text-muted small mb-0">{{ record.doctor.get_full_name }}</p>
+                                        </div>
+                                        <div class="text-muted small">
+                                            {{ record.date|date:"d.m.Y" }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Laboratuvar Testleri -->
+                {% if recent_records.lab_tests %}
+                <div class="accordion-item border-0 mb-3">
+                    <h3 class="accordion-header">
+                        <button class="accordion-button collapsed bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#labTestsCollapse">
+                            <i class="fas fa-flask me-2"></i>{% trans "Laboratuvar Testleri" %}
+                        </button>
+                    </h3>
+                    <div id="labTestsCollapse" class="accordion-collapse collapse" data-bs-parent="#hospitalRecordsAccordion">
+                        <div class="accordion-body p-0">
+                            {% for record in recent_records.lab_tests %}
+                            <div class="card bg-light mb-2">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h4 class="h6 fw-bold mb-1">{{ record.title }}</h4>
+                                            <p class="text-muted small mb-1">{{ record.hospital_name }}</p>
+                                            <p class="text-muted small mb-0">{{ record.doctor.get_full_name }}</p>
+                                        </div>
+                                        <div class="text-muted small">
+                                            {{ record.date|date:"d.m.Y" }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Görüntüleme -->
+                {% if recent_records.imaging %}
+                <div class="accordion-item border-0 mb-3">
+                    <h3 class="accordion-header">
+                        <button class="accordion-button collapsed bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#imagingCollapse">
+                            <i class="fas fa-camera me-2"></i>{% trans "Görüntüleme" %}
+                        </button>
+                    </h3>
+                    <div id="imagingCollapse" class="accordion-collapse collapse" data-bs-parent="#hospitalRecordsAccordion">
+                        <div class="accordion-body p-0">
+                            {% for record in recent_records.imaging %}
+                            <div class="card bg-light mb-2">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h4 class="h6 fw-bold mb-1">{{ record.title }}</h4>
+                                            <p class="text-muted small mb-1">{{ record.hospital_name }}</p>
+                                            <p class="text-muted small mb-0">{{ record.doctor.get_full_name }}</p>
+                                        </div>
+                                        <div class="text-muted small">
+                                            {{ record.date|date:"d.m.Y" }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Tedaviler -->
+                {% if recent_records.treatments %}
+                <div class="accordion-item border-0 mb-3">
+                    <h3 class="accordion-header">
+                        <button class="accordion-button collapsed bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#treatmentsCollapse">
+                            <i class="fas fa-notes-medical me-2"></i>{% trans "Tedaviler" %}
+                        </button>
+                    </h3>
+                    <div id="treatmentsCollapse" class="accordion-collapse collapse" data-bs-parent="#hospitalRecordsAccordion">
+                        <div class="accordion-body p-0">
+                            {% for record in recent_records.treatments %}
+                            <div class="card bg-light mb-2">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h4 class="h6 fw-bold mb-1">{{ record.title }}</h4>
+                                            <p class="text-muted small mb-1">{{ record.hospital_name }}</p>
+                                            <p class="text-muted small mb-0">{{ record.doctor.get_full_name }}</p>
+                                        </div>
+                                        <div class="text-muted small">
+                                            {{ record.date|date:"d.m.Y" }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="alert alert-info text-center shadow-sm py-4 rounded-3">
+                <i class="fas fa-info-circle fa-2x mb-2 text-primary"></i><br>
+                <span class="fs-5">{% trans "Henüz hastane kaydı bulunmuyor." %}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Nöbetçi Eczaneler -->
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-header bg-white border-0">
+            <h2 class="h5 fw-bold mb-0 text-primary">
+                <i class="fas fa-clinic-medical me-2"></i>{% trans "Nöbetçi Eczaneler" %}
+            </h2>
+        </div>
+        <div class="card-body">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="text-center mb-3">
+                        <a href="https://www.eczaneler.gen.tr/" target="_blank" class="d-inline-block">
+                            <img src="https://www.eczaneler.gen.tr/resimler/turkiye-nobetci-eczaneleri.jpg" 
+                                 alt="Nöbetçi Eczaneler" 
+                                 class="img-fluid rounded shadow-sm" 
+                                 style="max-width: 100%; height: auto;">
+                        </a>
+                    </div>
+                    <div class="ratio ratio-16x9">
+                        <iframe src="https://www.eczaneler.gen.tr/turkiye.php" 
+                                name="Nöbetçi Eczaneler" 
+                                class="rounded shadow-sm"
+                                style="border: none; background: white;">
+                        </iframe>
+                    </div>
                 </div>
             </div>
         </div>

@@ -4,70 +4,27 @@ from datetime import datetime, timedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import PermissionDenied
 from django.db.models import Avg, Sum
+from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse, reverse_lazy
+from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
-from .forms import ExerciseForm, MedicationForm, MessageForm, SleepForm, VitalSignsForm
-from .models import Exercise, Medication, Message, Sleep, VitalSigns
+from .forms import (
+    ExerciseForm,
+    HospitalRecordForm,
+    MedicationForm,
+    MessageForm,
+    SleepForm,
+)
+from .models import Exercise, HospitalRecord, Medication, Message, Sleep
 from .utils import send_message_notification_email
 
 
-# Vital Signs Views
-@login_required
-def vital_signs_list(request):
-    """Vital bulgular listesi görünümü"""
-    vitals = VitalSigns.objects.filter(user=request.user).order_by("-date")
-    return render(request, "health_data/vital_signs_list.html", {"vitals": vitals})
-
-
-@login_required
-def vital_signs_add(request):
-    """Vital bulgu ekleme görünümü"""
-    if request.method == "POST":
-        form = VitalSignsForm(request.POST)
-        if form.is_valid():
-            vital = form.save(commit=False)
-            vital.user = request.user
-            vital.save()
-            messages.success(request, "Vital bulgular başarıyla kaydedildi.")
-            return redirect("health_data:vital_signs_list")
-    else:
-        form = VitalSignsForm()
-    return render(request, "health_data/vital_signs_form.html", {"form": form})
-
-
-@login_required
-def vital_signs_detail(request, pk):
-    """Vital bulgu detay görünümü"""
-    vital = get_object_or_404(VitalSigns, pk=pk, user=request.user)
-    return render(request, "health_data/vital_signs_detail.html", {"vital": vital})
-
-
-@login_required
-def vital_signs_edit(request, pk):
-    """Vital bulgu düzenleme görünümü"""
-    vital = get_object_or_404(VitalSigns, pk=pk, user=request.user)
-    if request.method == "POST":
-        form = VitalSignsForm(request.POST, instance=vital)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Vital bulgular başarıyla güncellendi.")
-            return redirect("health_data:vital_signs_list")
-    else:
-        form = VitalSignsForm(instance=vital)
-    return render(request, "health_data/vital_signs_form.html", {"form": form})
-
-
-@login_required
-def vital_signs_delete(request, pk):
-    """Vital bulgu silme görünümü"""
-    vital = get_object_or_404(VitalSigns, pk=pk, user=request.user)
-    if request.method == "POST":
-        vital.delete()
-        messages.success(request, "Vital bulgular başarıyla silindi.")
-        return redirect("health_data:vital_signs_list")
-    return render(request, "health_data/vital_signs_delete.html", {"vital": vital})
+def is_doctor(user):
+    return user.is_authenticated and user.is_doctor
 
 
 # Medication Views
@@ -245,32 +202,63 @@ def sleep_delete(request, pk):
 # Dashboard and Reports
 @login_required
 def health_dashboard(request):
-    """Kullanıcının sağlık verilerinin özet görünümü"""
-    print(f"Giriş yapmış kullanıcı: {request.user.email}")  # Debug için
+    """Ana sayfa dashboard'u."""
+    if not request.user.is_authenticated:
+        return redirect("login")
 
-    # Son 7 günlük vital bulgular
-    vitals = VitalSigns.objects.filter(user=request.user).order_by("-date")[:7]
-    print(f"Vital bulgular sayısı: {vitals.count()}")  # Debug için
+    # İlaçlar
+    medication_count = Medication.objects.filter(user=request.user).count()
+    recent_medications = Medication.objects.filter(user=request.user).order_by("-created_at")[:5]
 
-    # Aktif ilaçlar
-    medications = Medication.objects.filter(user=request.user, is_active=True)
-    print(f"Aktif ilaç sayısı: {medications.count()}")  # Debug için
+    # Egzersizler
+    exercise_count = Exercise.objects.filter(user=request.user).count()
+    recent_exercises = Exercise.objects.filter(user=request.user).order_by("-date")[:5]
 
-    # Son 7 günlük egzersizler
-    exercises = Exercise.objects.filter(user=request.user).order_by("-date")[:7]
-    print(f"Egzersiz sayısı: {exercises.count()}")  # Debug için
+    # Hastane kayıtları
+    hospital_record_count = HospitalRecord.objects.filter(user=request.user).count()
+    recent_hospital_records = HospitalRecord.objects.filter(user=request.user).order_by("-date")[:5]
 
-    # Son 7 günlük uyku kayıtları
-    sleeps = Sleep.objects.filter(user=request.user).order_by("-date")[:7]
-    print(f"Uyku kaydı sayısı: {sleeps.count()}")  # Debug için
+    # Son aktiviteleri birleştir
+    recent_activities = []
+    for medication in recent_medications:
+        recent_activities.append(
+            {
+                "date": medication.created_at,
+                "activity_type": "medication",
+                "description": f"{medication.name} - {medication.dosage}",
+                "get_absolute_url": lambda: reverse("health_data:medication_detail", args=[medication.pk]),
+            }
+        )
+    for exercise in recent_exercises:
+        recent_activities.append(
+            {
+                "date": exercise.date,
+                "activity_type": "exercise",
+                "description": f"{exercise.name} - {exercise.duration} dk",
+                "get_absolute_url": lambda: reverse("health_data:exercise_detail", args=[exercise.pk]),
+            }
+        )
+    for record in recent_hospital_records:
+        recent_activities.append(
+            {
+                "date": record.date,
+                "activity_type": "hospital",
+                "description": f"{record.title} - {record.hospital_name}",
+                "get_absolute_url": lambda: reverse("health_data:hospital_record_detail", args=[record.pk]),
+            }
+        )
+
+    # Tarihe göre sırala
+    recent_activities.sort(key=lambda x: x["date"], reverse=True)
+    recent_activities = recent_activities[:10]  # En son 10 aktivite
 
     context = {
-        "vitals": vitals,
-        "medications": medications,
-        "exercises": exercises,
-        "sleeps": sleeps,
+        "medication_count": medication_count,
+        "exercise_count": exercise_count,
+        "hospital_record_count": hospital_record_count,
+        "recent_activities": recent_activities,
     }
-    return render(request, "health_data/health_dashboard.html", context)
+    return render(request, "core/dashboard.html", context)
 
 
 @login_required
@@ -279,9 +267,6 @@ def health_reports(request):
     # Son 30 günlük veriler
     end_date = datetime.now()
     start_date = end_date - timedelta(days=30)
-
-    # Vital bulgular trendi
-    vital_trends = VitalSigns.objects.filter(user=request.user, date__range=[start_date, end_date]).order_by("date")
 
     # Egzersiz istatistikleri
     exercise_stats = Exercise.objects.filter(user=request.user, date__range=[start_date, end_date]).aggregate(
@@ -296,7 +281,6 @@ def health_reports(request):
     )
 
     context = {
-        "vital_trends": vital_trends,
         "exercise_stats": exercise_stats,
         "sleep_stats": sleep_stats,
         "start_date": start_date,
@@ -403,3 +387,96 @@ def message_delete(request, message_id):
         return redirect("health_data:message_list")
 
     return render(request, "health_data/message_confirm_delete.html", {"message": message})
+
+
+class HospitalRecordListView(LoginRequiredMixin, ListView):
+    model = HospitalRecord
+    template_name = "health_data/hospital_record_list.html"
+    context_object_name = "records"
+
+    def get_queryset(self):
+        if self.request.user.is_doctor:
+            # Doktorlar tüm kayıtları görebilir
+            return HospitalRecord.objects.all()
+        else:
+            # Normal kullanıcılar sadece kendi kayıtlarını görebilir
+            return HospitalRecord.objects.filter(user=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        records = context["records"]
+
+        # Kayıtları türlerine göre grupla
+        context["interventions"] = records.filter(record_type="intervention")
+        context["xrays"] = records.filter(record_type="xray")
+        context["blood_tests"] = records.filter(record_type="blood_test")
+        context["lab_tests"] = records.filter(record_type="lab_test")
+        context["imaging"] = records.filter(record_type="imaging")
+        context["treatments"] = records.filter(record_type="treatment")
+
+        return context
+
+
+class HospitalRecordDetailView(LoginRequiredMixin, DetailView):
+    model = HospitalRecord
+    template_name = "health_data/hospital_record_detail.html"
+    context_object_name = "record"
+
+    def get_queryset(self):
+        if self.request.user.is_doctor:
+            return HospitalRecord.objects.all()
+        return HospitalRecord.objects.filter(user=self.request.user)
+
+
+class HospitalRecordCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    model = HospitalRecord
+    form_class = HospitalRecordForm
+    template_name = "health_data/hospital_record_form.html"
+    success_url = reverse_lazy("health_data:hospital_record_list")
+
+    def test_func(self):
+        return is_doctor(self.request.user)
+
+    def handle_no_permission(self):
+        messages.error(self.request, "Sadece doktorlar hastane kaydı ekleyebilir.")
+        return HttpResponseForbidden()
+
+    def form_valid(self, form):
+        form.instance.doctor = self.request.user
+        messages.success(self.request, "Hastane kaydı başarıyla oluşturuldu.")
+        return super().form_valid(form)
+
+
+class HospitalRecordUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = HospitalRecord
+    form_class = HospitalRecordForm
+    template_name = "health_data/hospital_record_form.html"
+    success_url = reverse_lazy("health_data:hospital_record_list")
+
+    def test_func(self):
+        return is_doctor(self.request.user)
+
+    def handle_no_permission(self):
+        messages.error(self.request, "Sadece doktorlar hastane kaydı düzenleyebilir.")
+        return HttpResponseForbidden()
+
+    def form_valid(self, form):
+        messages.success(self.request, "Hastane kaydı başarıyla güncellendi.")
+        return super().form_valid(form)
+
+
+class HospitalRecordDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = HospitalRecord
+    template_name = "health_data/hospital_record_confirm_delete.html"
+    success_url = reverse_lazy("health_data:hospital_record_list")
+
+    def test_func(self):
+        return is_doctor(self.request.user)
+
+    def handle_no_permission(self):
+        messages.error(self.request, "Sadece doktorlar hastane kaydı silebilir.")
+        return HttpResponseForbidden()
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, "Hastane kaydı başarıyla silindi.")
+        return super().delete(request, *args, **kwargs)

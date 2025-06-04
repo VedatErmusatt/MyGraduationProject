@@ -1,272 +1,201 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
+{% load i18n %}
 
 {% block title %}Dashboard - Kronik Sağlık Uygulaması{% endblock %}
 
+{% block extra_css %}
+<style>
+    body { background: #f6f8fa; }
+    .dashboard-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        border: 1px solid #e5e7eb;
+        transition: box-shadow 0.2s;
+        min-height: 170px;
+    }
+    .dashboard-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+    }
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        background: #f3f4f6;
+        font-size: 1.3rem;
+        color: #6c757d;
+        margin-right: 10px;
+    }
+    .card-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #22223b;
+        margin-bottom: 0;
+    }
+    .stat-count {
+        font-size: 2.1rem;
+        font-weight: 700;
+        color: #22223b;
+    }
+    .stat-label {
+        color: #8d99ae;
+        font-size: 1rem;
+        margin-left: 4px;
+    }
+    .btn-minimal {
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        color: #495057;
+        font-size: 0.95rem;
+        border-radius: 6px;
+        padding: 5px 16px;
+        transition: background 0.2s, color 0.2s;
+    }
+    .btn-minimal:hover {
+        background: #f3f4f6;
+        color: #22223b;
+    }
+    .table-header {
+        background: #f3f4f6;
+        color: #495057;
+        font-size: 0.98rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .table-row {
+        font-size: 0.97rem;
+        color: #22223b;
+    }
+    .table-row:hover {
+        background: #f8fafc;
+    }
+    .activity-badge {
+        font-size: 0.93rem;
+        font-weight: 500;
+        border-radius: 12px;
+        padding: 3px 12px;
+        background: #f3f4f6;
+        color: #495057;
+        margin-right: 2px;
+    }
+    .eczane-widget {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #fff;
+    }
+    .eczane-widget iframe {
+        border: none;
+        width: 100%;
+        height: 420px;
+    }
+    .dashboard-section-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #22223b;
+        margin-bottom: 18px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-4">
-    <div class="row">
-        <!-- Özet Kartları -->
-        <div class="col-md-3 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Vital Bulgular</h5>
-                    <p class="card-text display-6">{{ vital_count }}</p>
-                    <a href="{% url 'health_data:vital_signs_list' %}" class="btn btn-primary btn-sm">
-                        <i class="fas fa-heartbeat me-2"></i>Detaylar
-                    </a>
+    <div class="mb-4">
+        <span class="dashboard-section-title">{% trans "Sağlık Takip Paneli" %}</span>
+    </div>
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="dashboard-card p-4 d-flex flex-column justify-content-between h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="stat-icon"><i class="fas fa-pills"></i></div>
+                    <span class="card-title">{% trans "İlaçlar" %}</span>
                 </div>
+                <div class="d-flex align-items-end mb-2">
+                    <span class="stat-count">{{ medication_count }}</span>
+                    <span class="stat-label">{% trans "kayıt" %}</span>
+                </div>
+                <a href="{% url 'health_data:medication_list' %}" class="btn btn-minimal w-100 mt-2">{% trans "Detayları Görüntüle" %}</a>
             </div>
         </div>
-        <div class="col-md-3 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">İlaçlar</h5>
-                    <p class="card-text display-6">{{ medication_count }}</p>
-                    <a href="{% url 'health_data:medication_list' %}" class="btn btn-primary btn-sm">
-                        <i class="fas fa-pills me-2"></i>Detaylar
-                    </a>
+        <div class="col-md-4">
+            <div class="dashboard-card p-4 d-flex flex-column justify-content-between h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="stat-icon"><i class="fas fa-running"></i></div>
+                    <span class="card-title">{% trans "Egzersizler" %}</span>
                 </div>
+                <div class="d-flex align-items-end mb-2">
+                    <span class="stat-count">{{ exercise_count }}</span>
+                    <span class="stat-label">{% trans "kayıt" %}</span>
+                </div>
+                <a href="{% url 'health_data:exercise_list' %}" class="btn btn-minimal w-100 mt-2">{% trans "Detayları Görüntüle" %}</a>
             </div>
         </div>
-        <div class="col-md-3 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Egzersizler</h5>
-                    <p class="card-text display-6">{{ exercise_count }}</p>
-                    <a href="{% url 'health_data:exercise_list' %}" class="btn btn-primary btn-sm">
-                        <i class="fas fa-running me-2"></i>Detaylar
-                    </a>
+        <div class="col-md-4">
+            <div class="dashboard-card p-4 d-flex flex-column justify-content-between h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="stat-icon"><i class="fas fa-hospital"></i></div>
+                    <span class="card-title">{% trans "Hastane Kayıtları" %}</span>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Uyku Kayıtları</h5>
-                    <p class="card-text display-6">{{ sleep_count }}</p>
-                    <a href="{% url 'health_data:sleep_list' %}" class="btn btn-primary btn-sm">
-                        <i class="fas fa-moon me-2"></i>Detaylar
-                    </a>
+                <div class="d-flex align-items-end mb-2">
+                    <span class="stat-count">{{ hospital_record_count }}</span>
+                    <span class="stat-label">{% trans "kayıt" %}</span>
                 </div>
+                <a href="{% url 'health_data:hospital_record_list' %}" class="btn btn-minimal w-100 mt-2">{% trans "Detayları Görüntüle" %}</a>
             </div>
         </div>
     </div>
-
-    <!-- Son Vital Bulgular -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Son Vital Bulgular</h5>
-                    <a href="{% url 'health_data:vital_signs_add' %}" class="btn btn-primary btn-sm">
-                        <i class="fas fa-plus me-2"></i>Yeni Kayıt
-                    </a>
-                </div>
-                <div class="card-body">
-                    {% if recent_vitals %}
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Tarih</th>
-                                    <th>Tip</th>
-                                    <th>Değer</th>
-                                    <th>İşlemler</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for vital in recent_vitals %}
-                                <tr>
-                                    <td>{{ vital.date|date:"d.m.Y H:i" }}</td>
-                                    <td>{{ vital.get_type_display }}</td>
-                                    <td>{{ vital.value }} {{ vital.unit }}</td>
-                                    <td>
-                                        <div class="btn-group">
-                                            <a href="{% url 'health_data:vital_signs_detail' vital.pk %}" class="btn btn-sm btn-info">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{% url 'health_data:vital_signs_edit' vital.pk %}" class="btn btn-sm btn-warning">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <p class="text-muted mb-0">Henüz vital bulgu kaydı yok.</p>
-                    {% endif %}
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="dashboard-card p-4">
+                <div class="dashboard-section-title mb-3"><i class="fas fa-history me-2"></i>{% trans "Son Aktiviteler" %}</div>
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead class="table-header">
+                            <tr>
+                                <th>{% trans "Tarih" %}</th>
+                                <th>{% trans "Aktivite" %}</th>
+                                <th>{% trans "Detay" %}</th>
+                                <th class="text-end">{% trans "İşlemler" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for activity in recent_activities %}
+                            <tr class="table-row">
+                                <td>{{ activity.date|date:"d.m.Y H:i" }}</td>
+                                <td>
+                                    {% if activity.activity_type == 'medication' %}
+                                        <span class="activity-badge"><i class="fas fa-pills me-1"></i>{% trans "İlaç" %}</span>
+                                    {% elif activity.activity_type == 'exercise' %}
+                                        <span class="activity-badge"><i class="fas fa-running me-1"></i>{% trans "Egzersiz" %}</span>
+                                    {% elif activity.activity_type == 'hospital' %}
+                                        <span class="activity-badge"><i class="fas fa-hospital me-1"></i>{% trans "Hastane Kaydı" %}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ activity.description }}</td>
+                                <td class="text-end">
+                                    <a href="{{ activity.get_absolute_url }}" class="btn btn-minimal"><i class="fas fa-eye me-1"></i>{% trans "Görüntüle" %}</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center text-muted">{% trans "Henüz aktivite bulunmuyor." %}</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
-
-        <!-- Son İlaçlar -->
-        <div class="col-md-6">
-            <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Son İlaçlar</h5>
-                    <a href="{% url 'health_data:medication_add' %}" class="btn btn-primary btn-sm">
-                        <i class="fas fa-plus me-2"></i>Yeni İlaç
+        <div class="col-lg-4">
+            <div class="dashboard-card p-4">
+                <div class="dashboard-section-title mb-3"><i class="fas fa-clinic-medical me-2 text-danger"></i>{% trans "Nöbetçi Eczaneler" %}</div>
+                <div class="eczane-widget mb-2">
+                    <a href="https://www.eczaneler.gen.tr/" target="_blank" rel="noopener noreferrer">
+                        <img src="https://www.eczaneler.gen.tr/resimler/turkiye-nobetci-eczaneleri.jpg" alt="{% trans 'Nöbetçi Eczaneler' %}" class="img-fluid rounded-top">
                     </a>
-                </div>
-                <div class="card-body">
-                    {% if recent_medications %}
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>İlaç Adı</th>
-                                    <th>Doz</th>
-                                    <th>Durum</th>
-                                    <th>İşlemler</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for medication in recent_medications %}
-                                <tr>
-                                    <td>{{ medication.name }}</td>
-                                    <td>{{ medication.dosage }}</td>
-                                    <td>
-                                        {% if medication.is_active %}
-                                        <span class="badge bg-success">Aktif</span>
-                                        {% else %}
-                                        <span class="badge bg-secondary">Pasif</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <div class="btn-group">
-                                            <a href="{% url 'health_data:medication_detail' medication.pk %}" class="btn btn-sm btn-info">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{% url 'health_data:medication_edit' medication.pk %}" class="btn btn-sm btn-warning">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <p class="text-muted mb-0">Henüz ilaç kaydı yok.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Son Egzersizler -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Son Egzersizler</h5>
-                    <a href="{% url 'health_data:exercise_add' %}" class="btn btn-primary btn-sm">
-                        <i class="fas fa-plus me-2"></i>Yeni Egzersiz
-                    </a>
-                </div>
-                <div class="card-body">
-                    {% if recent_exercises %}
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Egzersiz</th>
-                                    <th>Tarih</th>
-                                    <th>Süre</th>
-                                    <th>İşlemler</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for exercise in recent_exercises %}
-                                <tr>
-                                    <td>{{ exercise.name }}</td>
-                                    <td>{{ exercise.date|date:"d.m.Y" }}</td>
-                                    <td>{{ exercise.duration }} dk</td>
-                                    <td>
-                                        <div class="btn-group">
-                                            <a href="{% url 'health_data:exercise_detail' exercise.pk %}" class="btn btn-sm btn-info">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{% url 'health_data:exercise_edit' exercise.pk %}" class="btn btn-sm btn-warning">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <p class="text-muted mb-0">Henüz egzersiz kaydı yok.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Son Uyku Kayıtları -->
-        <div class="col-md-6">
-            <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Son Uyku Kayıtları</h5>
-                    <a href="{% url 'health_data:sleep_add' %}" class="btn btn-primary btn-sm">
-                        <i class="fas fa-plus me-2"></i>Yeni Kayıt
-                    </a>
-                </div>
-                <div class="card-body">
-                    {% if recent_sleeps %}
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Tarih</th>
-                                    <th>Süre</th>
-                                    <th>Kalite</th>
-                                    <th>İşlemler</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for sleep in recent_sleeps %}
-                                <tr>
-                                    <td>{{ sleep.date|date:"d.m.Y" }}</td>
-                                    <td>{{ sleep.duration }} saat</td>
-                                    <td>
-                                        {% if sleep.quality == 5 %}
-                                        <span class="badge bg-success">Çok İyi</span>
-                                        {% elif sleep.quality == 4 %}
-                                        <span class="badge bg-info">İyi</span>
-                                        {% elif sleep.quality == 3 %}
-                                        <span class="badge bg-warning">Orta</span>
-                                        {% elif sleep.quality == 2 %}
-                                        <span class="badge bg-danger">Kötü</span>
-                                        {% else %}
-                                        <span class="badge bg-secondary">Çok Kötü</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <div class="btn-group">
-                                            <a href="{% url 'health_data:sleep_detail' sleep.pk %}" class="btn btn-sm btn-info">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{% url 'health_data:sleep_edit' sleep.pk %}" class="btn btn-sm btn-warning">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <p class="text-muted mb-0">Henüz uyku kaydı yok.</p>
-                    {% endif %}
+                    <iframe src="https://www.eczaneler.gen.tr/turkiye.php" name="Nöbetçi Eczaneler" title="{% trans 'Nöbetçi Eczaneler' %}" loading="lazy"></iframe>
                 </div>
             </div>
         </div>

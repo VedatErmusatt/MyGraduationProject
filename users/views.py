@@ -5,15 +5,15 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import (
     PasswordChangeView,
-    PasswordResetCompleteView,
     PasswordResetConfirmView,
     PasswordResetDoneView,
     PasswordResetView,
 )
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
+from django.views.generic import TemplateView
 
-from health_data.models import Exercise, Medication, Sleep, VitalSigns
+from health_data.models import Exercise, Medication, Sleep
 
 from .forms import CustomUserChangeForm, CustomUserCreationForm
 
@@ -103,18 +103,26 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     success_url = reverse_lazy("users:password_reset_complete")
 
 
-class CustomPasswordResetCompleteView(PasswordResetCompleteView):
+class CustomPasswordResetCompleteView(TemplateView):
     """Şifre sıfırlama tamamlandı görünümü"""
 
     template_name = "users/password_reset_complete.html"
+
+    def get(self, request, *args, **kwargs):
+        # Eğer kullanıcı zaten giriş yapmışsa dashboard'a yönlendir
+        if request.user.is_authenticated:
+            return redirect("core:dashboard")
+        return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["login_url"] = reverse_lazy("users:login")
+        return context
 
 
 @login_required
 def dashboard(request):
     """Ana dashboard görünümü"""
-    # Son 7 günlük vital bulgular
-    vitals = VitalSigns.objects.filter(user=request.user).order_by("-date")[:7]
-
     # Aktif ilaçlar
     medications = Medication.objects.filter(user=request.user, is_active=True)
 
@@ -125,7 +133,6 @@ def dashboard(request):
     sleeps = Sleep.objects.filter(user=request.user).order_by("-date")[:7]
 
     context = {
-        "vitals": vitals,
         "medications": medications,
         "exercises": exercises,
         "sleeps": sleeps,

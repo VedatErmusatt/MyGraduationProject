@@ -1,59 +1,15 @@
 from datetime import datetime, time, timedelta
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+
+User = get_user_model()
 
 # Create your models here.
-
-
-class VitalSigns(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="vital_signs")
-    date = models.DateTimeField(auto_now_add=True)
-    blood_pressure_systolic = models.IntegerField(
-        validators=[MinValueValidator(70), MaxValueValidator(200)],
-        null=True,
-        blank=True,
-        help_text="Sistolik kan basıncı (mmHg)",
-    )
-    blood_pressure_diastolic = models.IntegerField(
-        validators=[MinValueValidator(40), MaxValueValidator(130)],
-        null=True,
-        blank=True,
-        help_text="Diastolik kan basıncı (mmHg)",
-    )
-    heart_rate = models.IntegerField(
-        validators=[MinValueValidator(40), MaxValueValidator(200)],
-        null=True,
-        blank=True,
-        help_text="Nabız (bpm)",
-    )
-    temperature = models.DecimalField(
-        max_digits=3,
-        decimal_places=1,
-        validators=[MinValueValidator(35), MaxValueValidator(42)],
-        null=True,
-        blank=True,
-        help_text="Vücut sıcaklığı (°C)",
-    )
-    blood_sugar = models.DecimalField(
-        max_digits=4,
-        decimal_places=1,
-        validators=[MinValueValidator(2), MaxValueValidator(30)],
-        null=True,
-        blank=True,
-        help_text="Kan şekeri (mmol/L)",
-    )
-    notes = models.TextField(blank=True)
-
-    class Meta:
-        verbose_name = "Vital Bulgu"
-        verbose_name_plural = "Vital Bulgular"
-        ordering = ["-date"]
-
-    def __str__(self):
-        return f"{self.user.username} - {self.date.strftime('%d/%m/%Y %H:%M')}"
 
 
 class Medication(models.Model):
@@ -260,3 +216,68 @@ class Appointment(models.Model):
         return (
             f"{self.patient.get_full_name()} - {self.doctor.get_full_name()} - {self.date.strftime('%d.%m.%Y %H:%M')}"
         )
+
+
+class HospitalRecord(models.Model):
+    """Hastane kayıtları için ana model"""
+
+    RECORD_TYPES = [
+        ("intervention", _("Müdahale")),
+        ("xray", _("Röntgen")),
+        ("blood_test", _("Kan Testi")),
+        ("lab_test", _("Laboratuvar Testi")),
+        ("imaging", _("Görüntüleme")),
+        ("treatment", _("Tedavi")),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_("Hasta"))
+    record_type = models.CharField(max_length=20, choices=RECORD_TYPES, verbose_name=_("Kayıt Tipi"))
+    date = models.DateField(verbose_name=_("Tarih"))
+    title = models.CharField(max_length=200, verbose_name=_("Başlık"))
+    description = models.TextField(verbose_name=_("Açıklama"))
+    results = models.TextField(verbose_name=_("Sonuçlar"))
+    notes = models.TextField(blank=True, null=True, verbose_name=_("Notlar"))
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("Hastane Kaydı")
+        verbose_name_plural = _("Hastane Kayıtları")
+        ordering = ["-date", "-created_at"]
+
+    def __str__(self):
+        return f"{self.get_record_type_display()} - {self.date} - {self.title}"
+
+
+class BloodTestResult(models.Model):
+    """Kan testi sonuçları için detay model"""
+
+    hospital_record = models.ForeignKey(HospitalRecord, on_delete=models.CASCADE, related_name="blood_test_results")
+    parameter = models.CharField(max_length=100, verbose_name=_("Parametre"))
+    value = models.CharField(max_length=50, verbose_name=_("Değer"))
+    unit = models.CharField(max_length=20, verbose_name=_("Birim"))
+    reference_range = models.CharField(max_length=100, verbose_name=_("Referans Aralığı"))
+    is_abnormal = models.BooleanField(default=False, verbose_name=_("Anormal mi?"))
+
+    class Meta:
+        verbose_name = _("Kan Testi Sonucu")
+        verbose_name_plural = _("Kan Testi Sonuçları")
+
+    def __str__(self):
+        return f"{self.parameter}: {self.value} {self.unit}"
+
+
+class LabTestResult(models.Model):
+    """Laboratuvar testi sonuçları için detay model"""
+
+    hospital_record = models.ForeignKey(HospitalRecord, on_delete=models.CASCADE, related_name="lab_test_results")
+    test_name = models.CharField(max_length=200, verbose_name=_("Test Adı"))
+    result = models.TextField(verbose_name=_("Sonuç"))
+    interpretation = models.TextField(verbose_name=_("Yorum"))
+
+    class Meta:
+        verbose_name = _("Laboratuvar Testi Sonucu")
+        verbose_name_plural = _("Laboratuvar Testi Sonuçları")
+
+    def __str__(self):
+        return f"{self.test_name} - {self.hospital_record.date}"

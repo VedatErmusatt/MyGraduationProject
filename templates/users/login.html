@@ -5,41 +5,43 @@
 
 {% block title %}Giriş Yap - Kronik Sağlık Uygulaması{% endblock %}
 {% block content %}
-<div class="row">
-    <div class="col-md-6 mx-auto">
-        <div class="card">
-            <div class="card-header text-center">
-                <h5 class="card-title mb-0">Giriş Yap</h5>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="email" class="form-label">E-posta</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Şifre</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
-                    </div>
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-sign-in-alt"></i> Giriş Yap
-                        </button>
-                    </div>
-                </form>
-                <div class="mt-4 text-center">
-                    <p class="mb-2">Hesabınız yok mu?</p>
-                    <a href="{% url 'users:register' %}" class="btn btn-outline-primary">
-                        <i class="fas fa-user-plus"></i> Kayıt Ol
-                    </a>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-0 text-center">
+                    <i class="fas fa-user-circle fa-3x text-primary mb-3"></i>
+                    <h1 class="h4 fw-bold text-primary mb-0">Giriş Yap</h1>
                 </div>
-                <hr>
-                <div class="text-center">
-                    <p class="mb-2">Şifrenizi mi unuttunuz?</p>
-                    <a href="{% url 'users:password_reset' %}" class="btn btn-outline-secondary">
-                        <i class="fas fa-key"></i> Şifremi Sıfırla
-                    </a>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="email" class="form-label">E-posta</label>
+                            <input type="email" class="form-control" id="email" name="email" required autofocus>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Şifre</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="d-grid gap-2 mb-3">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-sign-in-alt me-2"></i>Giriş Yap
+                            </button>
+                        </div>
+                    </form>
+                    <div class="text-center my-3">
+                        <a href="{% url 'users:password_reset' %}" class="text-decoration-none">
+                            <i class="fas fa-key me-1"></i>Şifremi Unuttum
+                        </a>
+                    </div>
+                    <hr>
+                    <div class="text-center">
+                        <span>Hesabınız yok mu?</span><br>
+                        <a href="{% url 'users:register' %}" class="btn btn-outline-primary mt-2">
+                            <i class="fas fa-user-plus me-2"></i>Kayıt Ol
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

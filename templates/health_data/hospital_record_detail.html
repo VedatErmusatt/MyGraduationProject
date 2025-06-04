@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ record.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-body">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+                        <h1 class="h4 fw-bold mb-0 text-primary">
+                            <i class="fas fa-hospital me-2"></i>{{ record.title }}
+                        </h1>
+                        <div class="btn-group">
+                            {% if user.is_doctor %}
+                            <a href="{% url 'health_data:hospital_record_update' record.pk %}" class="btn btn-warning btn-sm">
+                                <i class="fas fa-edit me-1"></i> {% trans "Düzenle" %}
+                            </a>
+                            <a href="{% url 'health_data:hospital_record_delete' record.pk %}" class="btn btn-danger btn-sm" onclick="return confirm('{% trans 'Bu kaydı silmek istediğinizden emin misiniz?' %}')">
+                                <i class="fas fa-trash me-1"></i> {% trans "Sil" %}
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="text-muted small">{% trans "Tarih" %}</div>
+                                <div class="fw-semibold">{{ record.date }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="text-muted small">{% trans "Hastane" %}</div>
+                                <div class="fw-semibold">{{ record.hospital_name }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="text-muted small">{% trans "Doktor" %}</div>
+                                <div class="fw-semibold">{{ record.doctor.get_full_name }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="text-muted small">{% trans "Açıklama" %}</div>
+                                <div>{{ record.description }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="text-muted small">{% trans "Sonuçlar" %}</div>
+                                <div>{{ record.results }}</div>
+                            </div>
+                            {% if record.blood_test_results.exists %}
+                            <div class="mb-3">
+                                <div class="text-muted small">{% trans "Kan Testi Sonuçları" %}</div>
+                                <div class="list-group list-group-flush">
+                                    {% for result in record.blood_test_results.all %}
+                                    <div class="list-group-item">
+                                        <div class="fw-semibold">{{ result.test_name }}</div>
+                                        <div class="text-muted small">{{ result.result }}</div>
+                                        <div class="text-secondary small">{{ result.reference_range }}</div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if record.lab_test_results.exists %}
+                            <div class="mb-3">
+                                <div class="text-muted small">{% trans "Laboratuvar Testi Sonuçları" %}</div>
+                                <div class="list-group list-group-flush">
+                                    {% for result in record.lab_test_results.all %}
+                                    <div class="list-group-item">
+                                        <div class="fw-semibold">{{ result.test_name }}</div>
+                                        <div class="text-muted small">{{ result.result }}</div>
+                                        <div class="text-secondary small">{{ result.reference_range }}</div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-start">
+                <a href="{% url 'health_data:hospital_record_list' %}" class="btn btn-link">
+                    <i class="fas fa-arrow-left me-2"></i> {% trans "Kayıt Listesine Dön" %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

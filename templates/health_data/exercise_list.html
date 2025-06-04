@@ -1,31 +1,29 @@
 {% extends 'base.html' %}
 {% load static %}
-
+{% load humanize %}
 
 {% block title %}Egzersizlerim - Kronik Sağlık Uygulaması{% endblock %}
 
-
 {% block content %}
 <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">Egzersizlerim</h1>
-        <a href="{% url 'health_data:exercise_add' %}" class="btn btn-primary">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <h1 class="h3 fw-bold mb-0 text-primary">Egzersizlerim</h1>
+        <a href="{% url 'health_data:exercise_add' %}" class="btn btn-primary btn-lg shadow-sm">
             <i class="fas fa-plus me-2"></i>Yeni Egzersiz
         </a>
     </div>
-
-    {% if exercises %}
-    <div class="card">
-        <div class="card-body">
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-body p-0">
+            {% if exercises %}
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
                         <tr>
-                            <th>Egzersiz Adı</th>
+                            <th>Egzersiz</th>
                             <th>Tarih</th>
-                            <th>Süre</th>
-                            <th>Kalori</th>
-                            <th>İşlemler</th>
+                            <th>Süre (dk)</th>
+                            <th>Yoğunluk</th>
+                            <th class="text-end">İşlemler</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -33,17 +31,17 @@
                         <tr>
                             <td>{{ exercise.name }}</td>
                             <td>{{ exercise.date|date:"d.m.Y" }}</td>
-                            <td>{{ exercise.duration }} dakika</td>
-                            <td>{{ exercise.calories_burned }} kcal</td>
-                            <td>
+                            <td>{{ exercise.duration }}</td>
+                            <td>{{ exercise.get_intensity_display }}</td>
+                            <td class="text-end">
                                 <div class="btn-group">
-                                    <a href="{% url 'health_data:exercise_detail' exercise.pk %}" class="btn btn-sm btn-info">
+                                    <a href="{% url 'health_data:exercise_detail' exercise.pk %}" class="btn btn-outline-info btn-sm" title="Detay">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <a href="{% url 'health_data:exercise_edit' exercise.pk %}" class="btn btn-sm btn-warning">
+                                    <a href="{% url 'health_data:exercise_edit' exercise.pk %}" class="btn btn-outline-warning btn-sm" title="Düzenle">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <a href="{% url 'health_data:exercise_delete' exercise.pk %}" class="btn btn-sm btn-danger">
+                                    <a href="{% url 'health_data:exercise_delete' exercise.pk %}" class="btn btn-outline-danger btn-sm" title="Sil">
                                         <i class="fas fa-trash"></i>
                                     </a>
                                 </div>
@@ -53,19 +51,13 @@
                     </tbody>
                 </table>
             </div>
+            {% else %}
+            <div class="alert alert-info text-center shadow-sm py-4 rounded-3 mb-0">
+                <i class="fas fa-info-circle fa-2x mb-2 text-primary"></i><br>
+                <span class="fs-5">Kayıtlı egzersiz bulunmuyor.</span>
+            </div>
+            {% endif %}
         </div>
     </div>
-    {% else %}
-    <div class="card">
-        <div class="card-body text-center py-5">
-            <i class="fas fa-running fa-3x text-muted mb-3"></i>
-            <h3 class="h5 text-muted">Henüz egzersiz kaydı yok</h3>
-            <p class="text-muted mb-4">İlk egzersiz kaydınızı oluşturmak için aşağıdaki butonu kullanabilirsiniz.</p>
-            <a href="{% url 'health_data:exercise_add' %}" class="btn btn-primary">
-                <i class="fas fa-plus me-2"></i>İlk Egzersizi Ekle
-            </a>
-        </div>
-    </div>
-    {% endif %}
 </div>
 {% endblock %} 
