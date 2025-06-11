@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Randevularım{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Randevularım</h2>
+        <a href="{% url 'health_data:appointment_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Yeni Randevu
+        </a>
+    </div>
+
+    {% if appointments %}
+    <div class="row">
+        {% for appointment in appointments %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header {% if appointment.date < today %}bg-danger{% else %}bg-primary{% endif %} text-white">
+                    <h5 class="card-title mb-0">
+                        {{ appointment.date|date:"d.m.Y" }} {{ appointment.time|time:"H:i" }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">{{ appointment.department }}</h6>
+                    <p class="card-text">
+                        <strong>Doktor:</strong> {{ appointment.doctor.get_full_name }}<br>
+                        {% if appointment.notes %}
+                        <strong>Notlar:</strong> {{ appointment.notes }}
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="btn-group w-100">
+                        <a href="{% url 'health_data:appointment_detail' appointment.pk %}" class="btn btn-outline-primary">
+                            <i class="fas fa-eye me-2"></i>Detay
+                        </a>
+                        <a href="{% url 'health_data:appointment_update' appointment.pk %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-edit me-2"></i>Düzenle
+                        </a>
+                        <a href="{% url 'health_data:appointment_delete' appointment.pk %}" class="btn btn-outline-danger">
+                            <i class="fas fa-trash me-2"></i>Sil
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>Henüz randevunuz bulunmuyor.
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

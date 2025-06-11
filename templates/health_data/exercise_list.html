@@ -29,10 +29,10 @@
                     <tbody>
                         {% for exercise in exercises %}
                         <tr>
-                            <td>{{ exercise.name }}</td>
+                            <td>{{ exercise.get_exercise_type_display }}</td>
                             <td>{{ exercise.date|date:"d.m.Y" }}</td>
                             <td>{{ exercise.duration }}</td>
-                            <td>{{ exercise.get_intensity_display }}</td>
+                            <td>{{ exercise.intensity }}</td>
                             <td class="text-end">
                                 <div class="btn-group">
                                     <a href="{% url 'health_data:exercise_detail' exercise.pk %}" class="btn btn-outline-info btn-sm" title="Detay">

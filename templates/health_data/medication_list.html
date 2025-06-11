@@ -34,7 +34,7 @@
                             <td>{{ medication.start_date|date:"d.m.Y" }}</td>
                             <td>{{ medication.end_date|date:"d.m.Y" }}</td>
                             <td>{{ medication.dosage }}</td>
-                            <td>{{ medication.frequency }}</td>
+                            <td>{{ medication.get_frequency_display }}</td>
                             <td>
                                 {% if medication.is_active %}
                                     <span class="badge bg-success">Aktif</span>

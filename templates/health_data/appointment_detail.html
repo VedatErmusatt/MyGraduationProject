@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Randevu Detayı{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header {% if appointment.date < today %}bg-danger{% else %}bg-primary{% endif %} text-white">
+                    <h4 class="mb-0">
+                        {{ appointment.date|date:"d.m.Y" }} {{ appointment.time|time:"H:i" }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5 class="card-title">Randevu Bilgileri</h5>
+                            <dl class="row">
+                                <dt class="col-sm-4">Bölüm</dt>
+                                <dd class="col-sm-8">{{ appointment.department }}</dd>
+                                
+                                <dt class="col-sm-4">Doktor</dt>
+                                <dd class="col-sm-8">{{ appointment.doctor.get_full_name }}</dd>
+                                
+                                <dt class="col-sm-4">Durum</dt>
+                                <dd class="col-sm-8">
+                                    {% if appointment.date < today %}
+                                    <span class="badge bg-danger">Geçmiş</span>
+                                    {% else %}
+                                    <span class="badge bg-success">Aktif</span>
+                                    {% endif %}
+                                </dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="card-title">Notlar</h5>
+                            {% if appointment.notes %}
+                            <p class="card-text">{{ appointment.notes }}</p>
+                            {% else %}
+                            <p class="text-muted">Not bulunmuyor.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'health_data:appointment_update' appointment.pk %}" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>Düzenle
+                        </a>
+                        <a href="{% url 'health_data:appointment_delete' appointment.pk %}" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>Sil
+                        </a>
+                        <a href="{% url 'health_data:appointment_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Geri Dön
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

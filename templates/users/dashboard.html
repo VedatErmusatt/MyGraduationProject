@@ -6,259 +6,357 @@
 
 {% block title %}Dashboard - Kronik Sağlık Uygulaması{% endblock %}
 
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.css" rel="stylesheet">
+<style>
+    /* Yeni (React dashboard) tasarımı için CSS (örneğin, grid layout, özet kartları, günlük hedefler, sağlık ipucu, vb.) */
+    .dashboard-container {
+        display: grid;
+        grid-template-columns: 1fr 2.5fr 1fr;
+        gap: 24px;
+        padding: 24px;
+        background-color: #F7F9FC;
+        min-height: 100vh;
+    }
+    .card {
+        background-color: #FFFFFF;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        margin-bottom: 24px;
+        border: none;
+    }
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #2D3748;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .user-profile {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    .user-icon {
+        font-size: 48px;
+        color: #4A90E2;
+    }
+    .user-name {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2D3748;
+    }
+    .welcome-message {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2D3748;
+        margin-bottom: 24px;
+    }
+    .goal-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    .goal-icon {
+        font-size: 20px;
+        color: #4A90E2;
+    }
+    .goal-text {
+        flex: 1;
+        font-size: 0.875rem;
+        color: #2D3748;
+    }
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background-color: #E2E8F0;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 4px;
+    }
+    .progress-fill {
+        height: 100%;
+        background-color: #4A90E2;
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+    .chart-container {
+        height: 300px;
+        margin-top: 16px;
+    }
+    .appointment-item {
+        padding: 12px 0;
+        border-bottom: 1px solid #E2E8F0;
+    }
+    .appointment-time {
+        font-size: 0.875rem;
+        color: #718096;
+        margin-bottom: 4px;
+    }
+    .appointment-doctor {
+        font-size: 1rem;
+        color: #2D3748;
+        font-weight: 500;
+    }
+    .health-tip {
+        font-size: 0.95rem;
+        color: #718096;
+        line-height: 1.5;
+    }
+    .summary-card {
+        text-align: center;
+        padding: 20px;
+    }
+    .summary-card i {
+        font-size: 2rem;
+        margin-bottom: 12px;
+        color: #4A90E2;
+    }
+    .summary-card .value {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2D3748;
+        margin-bottom: 4px;
+    }
+    .summary-card .label {
+        font-size: 0.875rem;
+        color: #718096;
+    }
+    .update-btn {
+        margin-top: 10px;
+        width: 100%;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <h1 class="h3 mb-4">Hoş Geldiniz, {{ user.get_full_name|default:user.email }}</h1>
-
-    <div class="row">
-        <!-- Hastane Kayıtları -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100 shadow-sm border-0">
-                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-                    <h2 class="h5 fw-bold mb-0 text-primary">
-                        <i class="fas fa-hospital me-2"></i>Son Hastane Kayıtları
-                    </h2>
-                    <a href="{% url 'health_data:hospital_record_list' %}" class="btn btn-link text-primary p-0">
-                        Tümünü Gör <i class="fas fa-arrow-right ms-1"></i>
-                    </a>
-                </div>
-                <div class="card-body">
-                    {% if hospital_records %}
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th scope="col"><i class="fas fa-calendar-alt me-1"></i>Tarih</th>
-                                    <th scope="col"><i class="fas fa-notes-medical me-1"></i>Tür</th>
-                                    <th scope="col"><i class="fas fa-clinic-medical me-1"></i>Hastane</th>
-                                    <th scope="col"><i class="fas fa-user-md me-1"></i>Doktor</th>
-                                    <th scope="col"><i class="fas fa-cogs me-1"></i>İşlemler</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for record in hospital_records %}
-                                <tr>
-                                    <td>{{ record.date|date:"d.m.Y" }}</td>
-                                    <td>{{ record.get_record_type_display }}</td>
-                                    <td>{{ record.hospital_name }}</td>
-                                    <td>{{ record.doctor.get_full_name }}</td>
-                                    <td>
-                                        <div class="btn-group">
-                                            <a href="{% url 'health_data:hospital_record_detail' record.pk %}" class="btn btn-sm btn-outline-info" title="Görüntüle">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{% url 'health_data:hospital_record_edit' record.pk %}" class="btn btn-sm btn-outline-warning" title="Düzenle">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <div class="alert alert-info text-center shadow-sm py-4 rounded-3 mb-0">
-                        <i class="fas fa-info-circle fa-2x mb-2 text-primary"></i><br>
-                        <span class="fs-5">Henüz hastane kaydı yok.</span>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        <!-- İlaçlar -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100 shadow-sm border-0">
-                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-                    <h2 class="h5 fw-bold mb-0 text-primary">
-                        <i class="fas fa-pills me-2"></i>Aktif İlaçlar
-                    </h2>
-                    <a href="{% url 'health_data:medication_add' %}" class="btn btn-link text-primary p-0">
-                        <i class="fas fa-plus me-2"></i>Yeni İlaç
-                    </a>
-                </div>
-                <div class="card-body">
-                    {% if medications %}
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th scope="col"><i class="fas fa-capsules me-1"></i>İlaç Adı</th>
-                                    <th scope="col"><i class="fas fa-vial me-1"></i>Doz</th>
-                                    <th scope="col"><i class="fas fa-clock me-1"></i>Kullanım</th>
-                                    <th scope="col"><i class="fas fa-cogs me-1"></i>İşlemler</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for medication in medications %}
-                                <tr>
-                                    <td>{{ medication.name }}</td>
-                                    <td>{{ medication.dosage }}</td>
-                                    <td>{{ medication.frequency }}</td>
-                                    <td>
-                                        <div class="btn-group">
-                                            <a href="{% url 'health_data:medication_detail' medication.pk %}" class="btn btn-sm btn-outline-info" title="Görüntüle">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{% url 'health_data:medication_edit' medication.pk %}" class="btn btn-sm btn-outline-warning" title="Düzenle">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <div class="alert alert-info text-center shadow-sm py-4 rounded-3 mb-0">
-                        <i class="fas fa-info-circle fa-2x mb-2 text-primary"></i><br>
-                        <span class="fs-5">Aktif ilaç bulunmuyor.</span>
-                    </div>
-                    {% endif %}
+<!-- Yeni (React dashboard) tasarımı (örneğin, grid layout (sol sidebar, ana içerik, sağ sidebar) ve (örneğin, özet kartları, uyku grafiği, egzersiz grafiği, günlük hedefler, sağlık ipucu, yaklaşan randevular, aktif ilaçlar vb.) bölümler) -->
+<div class="dashboard-container">
+    <!-- Sol Sidebar -->
+    <div class="left-sidebar">
+        <!-- Kullanıcı Profili -->
+        <div class="card">
+            <div class="user-profile">
+                <i class="fas fa-user-circle user-icon"></i>
+                <div>
+                    <div class="user-name">{{ request.user.get_full_name }}</div>
+                    <div style="color: #718096;">Sağlık Takibi</div>
                 </div>
             </div>
         </div>
 
-        <!-- Egzersizler -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100 shadow-sm border-0">
-                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-                    <h2 class="h5 fw-bold mb-0 text-primary">
-                        <i class="fas fa-running me-2"></i>Son Egzersizler
-                    </h2>
-                    <a href="{% url 'health_data:exercise_add' %}" class="btn btn-link text-primary p-0">
-                        <i class="fas fa-plus me-2"></i>Yeni Egzersiz
-                    </a>
+        <!-- Günlük Hedefler -->
+        <div class="card">
+            <div class="card-title">
+                <i class="fas fa-calendar-alt"></i> {% trans "Günün Hedefleri" %}
+            </div>
+            {% with summary=summary_data goals=daily_goals %}
+            <div class="goal-item">
+                <i class="fas fa-walking goal-icon"></i>
+                <div style="flex: 1;">
+                    <div class="goal-text">
+                        {% trans "Adım" %}: {{ summary.daily_steps|default:0 }} / {{ goals.steps }}
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {% widthratio summary.daily_steps goals.steps 100 %}%"></div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    {% if exercises %}
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th scope="col"><i class="fas fa-calendar-alt me-1"></i>Tarih</th>
-                                    <th scope="col"><i class="fas fa-dumbbell me-1"></i>Tür</th>
-                                    <th scope="col"><i class="fas fa-stopwatch me-1"></i>Süre</th>
-                                    <th scope="col"><i class="fas fa-cogs me-1"></i>İşlemler</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for exercise in exercises %}
-                                <tr>
-                                    <td>{{ exercise.date|date:"d.m.Y" }}</td>
-                                    <td>{{ exercise.type }}</td>
-                                    <td>{{ exercise.duration }} dk</td>
-                                    <td>
-                                        <div class="btn-group">
-                                            <a href="{% url 'health_data:exercise_detail' exercise.pk %}" class="btn btn-sm btn-outline-info" title="Görüntüle">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{% url 'health_data:exercise_edit' exercise.pk %}" class="btn btn-sm btn-outline-warning" title="Düzenle">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+            </div>
+            <div class="goal-item">
+                <i class="fas fa-tint goal-icon"></i>
+                <div style="flex: 1;">
+                    <div class="goal-text">
+                        {% trans "Su" %}: {{ summary.daily_water|default:0 }}L / {{ goals.water }}L
                     </div>
-                    {% else %}
-                    <div class="alert alert-info text-center shadow-sm py-4 rounded-3 mb-0">
-                        <i class="fas fa-info-circle fa-2x mb-2 text-primary"></i><br>
-                        <span class="fs-5">Henüz egzersiz kaydı yok.</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {% widthratio summary.daily_water goals.water 100 %}%"></div>
                     </div>
-                    {% endif %}
+                </div>
+            </div>
+            <div class="goal-item">
+                <i class="fas fa-bed goal-icon"></i>
+                <div style="flex: 1;">
+                    <div class="goal-text">
+                        {% trans "Uyku" %}: {{ summary.avg_sleep|floatformat:1|default:0 }}s / {{ goals.sleep }}s
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {% widthratio summary.avg_sleep goals.sleep 100 %}%"></div>
+                    </div>
+                </div>
+            </div>
+            {% endwith %}
+            <a href="{% url 'health_data:update_daily_activity' %}" class="btn btn-outline-primary update-btn">
+                <i class="fas fa-edit me-2"></i>Günlük Aktiviteyi Güncelle
+            </a>
+        </div>
+
+        <!-- Sağlık İpucu -->
+        <div class="card">
+            <div class="card-title">
+                <i class="fas fa-info-circle"></i> {% trans "Sağlık İpucu" %}
+            </div>
+            <div class="health-tip">
+                {% if health_tip %}
+                    {{ health_tip.content }}
+                {% else %}
+                    Şu anda sağlık ipucu yok.
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Ana İçerik -->
+    <div class="main-content">
+        <div class="welcome-message">
+            {% trans "Hoş Geldiniz" %}, {{ request.user.get_full_name }}
+        </div>
+
+        <!-- Özet Kartları -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card summary-card">
+                    <i class="fas fa-walking"></i>
+                    <div class="value">{{ summary_data.daily_steps|default:"0" }}</div>
+                    <div class="label">{% trans "Günlük Adım" %}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card summary-card">
+                    <i class="fas fa-tint"></i>
+                    <div class="value">{{ summary_data.daily_water|default:"0" }}L</div>
+                    <div class="label">{% trans "Su Tüketimi" %}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card summary-card">
+                    <i class="fas fa-fire"></i>
+                    <div class="value">{{ summary_data.calories_burned|default:"0" }}</div>
+                    <div class="label">{% trans "Kalori Yakımı" %}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card summary-card">
+                    <i class="fas fa-bed"></i>
+                    <div class="value">{{ summary_data.avg_sleep|floatformat:1|default:"0" }}s</div>
+                    <div class="label">{% trans "Ort. Uyku" %}</div>
                 </div>
             </div>
         </div>
 
-        <!-- Uyku Kayıtları -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100 shadow-sm border-0">
-                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-                    <h2 class="h5 fw-bold mb-0 text-primary">
-                        <i class="fas fa-moon me-2"></i>Son Uyku Kayıtları
-                    </h2>
-                    <a href="{% url 'health_data:sleep_add' %}" class="btn btn-link text-primary p-0">
-                        <i class="fas fa-plus me-2"></i>Yeni Kayıt
-                    </a>
-                </div>
-                <div class="card-body">
-                    {% if sleep_records %}
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th scope="col"><i class="fas fa-calendar-alt me-1"></i>Tarih</th>
-                                    <th scope="col"><i class="fas fa-hourglass-half me-1"></i>Süre</th>
-                                    <th scope="col"><i class="fas fa-star me-1"></i>Kalite</th>
-                                    <th scope="col"><i class="fas fa-cogs me-1"></i>İşlemler</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for sleep in sleep_records %}
-                                <tr>
-                                    <td>{{ sleep.date|date:"d.m.Y" }}</td>
-                                    <td>{{ sleep.duration }} saat</td>
-                                    <td>
-                                        {% if sleep.quality == 5 %}
-                                        <span class="badge bg-success">Çok İyi</span>
-                                        {% elif sleep.quality == 4 %}
-                                        <span class="badge bg-info">İyi</span>
-                                        {% elif sleep.quality == 3 %}
-                                        <span class="badge bg-warning">Orta</span>
-                                        {% elif sleep.quality == 2 %}
-                                        <span class="badge bg-danger">Kötü</span>
-                                        {% else %}
-                                        <span class="badge bg-secondary">Çok Kötü</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <div class="btn-group">
-                                            <a href="{% url 'health_data:sleep_detail' sleep.pk %}" class="btn btn-sm btn-outline-info" title="Görüntüle">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{% url 'health_data:sleep_edit' sleep.pk %}" class="btn btn-sm btn-outline-warning" title="Düzenle">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+        <!-- Uyku Grafiği -->
+        <div class="card">
+            <div class="card-title">
+                <i class="fas fa-bed"></i> {% trans "Haftalık Uyku Takibi" %}
+            </div>
+            <div class="chart-container">
+                <canvas id="sleepChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Egzersiz Grafiği -->
+        <div class="card">
+            <div class="card-title">
+                <i class="fas fa-running"></i> {% trans "Egzersiz Dağılımı" %}
+            </div>
+            <div class="chart-container">
+                <canvas id="exerciseChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Nöbetçi Eczaneler (Buton ile açılır, ana içerik genişliğinde) -->
+        <div class="main-content">
+            <button class="btn btn-outline-primary w-100 mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#pharmacyWidget" aria-expanded="false" aria-controls="pharmacyWidget">
+                <i class="fas fa-clinic-medical me-2"></i>Nöbetçi Eczaneleri Göster
+            </button>
+            <div class="collapse" id="pharmacyWidget">
+                <div class="card border-0 shadow-sm" style="background: #f8fafc;">
+                    <div class="card-body p-2">
+                        <div style="margin:auto;text-align:center;width:100%;max-width:1000px;">
+                            <a href="https://www.eczaneler.gen.tr/" target="_blank">
+                                <img src="https://www.eczaneler.gen.tr/resimler/turkiye-nobetci-eczaneleri.jpg" alt="liste" style="border-radius:3px;width:100%;margin-bottom:0px;">
+                            </a><br>
+                            <div style="width:100%;height:300px;">
+                                <iframe src="https://www.eczaneler.gen.tr/turkiye.php" name="Nöbetçi Eczaneler" style="width:100%;height:300px;border:none;" ></iframe>
+                            </div>
+                        </div>
                     </div>
-                    {% else %}
-                    <div class="alert alert-info text-center shadow-sm py-4 rounded-3 mb-0">
-                        <i class="fas fa-info-circle fa-2x mb-2 text-primary"></i><br>
-                        <span class="fs-5">Henüz uyku kaydı yok.</span>
-                    </div>
-                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Nöbetçi Eczaneler (Buton ile açılır) -->
-<div class="container mb-4" style="max-width:600px;">
-    <button class="btn btn-outline-primary w-100 mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#pharmacyWidget" aria-expanded="false" aria-controls="pharmacyWidget">
-        <i class="fas fa-clinic-medical me-2"></i>Nöbetçi Eczaneleri Göster
-    </button>
-    <div class="collapse" id="pharmacyWidget">
-        <div class="card border-0 shadow-sm" style="background: #f8fafc;">
-            <div class="card-body p-2">
-                <div style="margin:auto;text-align:center;width:100%;max-width:600px;">
-                    <a href="https://www.eczaneler.gen.tr/" target="_blank">
-                        <img src="https://www.eczaneler.gen.tr/resimler/turkiye-nobetci-eczaneleri.jpg" alt="liste" style="border-radius:3px;width:100%;margin-bottom:0px;">
-                    </a><br>
-                    <iframe src="https://www.eczaneler.gen.tr/turkiye.php" name="Nöbetçi Eczaneler" style="width:100%;height:300px;border:none;"></iframe>
-                </div>
+    <!-- Sağ Sidebar -->
+    <div class="right-sidebar">
+        <!-- Yaklaşan Randevular -->
+        <div class="card">
+            <div class="card-title">
+                <i class="fas fa-calendar-alt"></i> {% trans "Yaklaşan Randevular" %}
             </div>
+            {% for appointment in upcoming_appointments %}
+            <div class="appointment-item">
+                <div class="appointment-time">
+                    {{ appointment.date|date:"d.m.Y" }} - {{ appointment.time }}
+                </div>
+                <div class="appointment-doctor">{{ appointment.doctor.get_full_name }}</div>
+            </div>
+            {% empty %}
+            <div class="text-center text-muted py-3">
+                {% trans "Yaklaşan randevu bulunmuyor." %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Aktif İlaçlar -->
+        <div class="card">
+            <div class="card-title">
+                <i class="fas fa-pills"></i> {% trans "Aktif İlaçlar" %}
+            </div>
+            {% for medication in active_medications %}
+            <div class="appointment-item">
+                <div class="appointment-doctor">{{ medication.name }}</div>
+                <div class="appointment-time">{{ medication.dosage }} - {{ medication.get_frequency_display }}</div>
+            </div>
+            {% empty %}
+            <div class="text-center text-muted py-3">
+                {% trans "Aktif ilaç bulunmuyor." %}
+            </div>
+            {% endfor %}
         </div>
     </div>
 </div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Uyku Grafiği (örneğin, Chart.js ile haftalık uyku takibi)
+    const sleepCtx = document.getElementById('sleepChart').getContext('2d');
+    new Chart(sleepCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ sleep_labels|safe }},
+            datasets: [{ label: '{% trans "Uyku Süresi (Saat)" %}', data: {{ sleep_durations|safe }}, backgroundColor: '#8B5CF6', borderRadius: 4 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, title: { display: true, text: '{% trans "Saat" %}' } } } }
+    });
+
+    // Egzersiz Grafiği (örneğin, Chart.js ile egzersiz dağılımı)
+    const exerciseCtx = document.getElementById('exerciseChart').getContext('2d');
+    new Chart(exerciseCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ exercise_labels|safe }},
+            datasets: [{ label: '{% trans "Egzersiz Dağılımı" %}', data: {{ exercise_counts|safe }}, backgroundColor: [ '#4A90E2', '#8B5CF6', '#F6AD55', '#F56565', '#48BB78' ], borderWidth: 0 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    });
+});
+</script>
 {% endblock %} 

@@ -1,25 +1,27 @@
 # Create your views here.
 
 from datetime import datetime, timedelta
+import json
+import random
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import PermissionDenied
-from django.db.models import Avg, Sum
-from django.http import HttpResponseForbidden
+from django.db.models import Avg, Sum, Count
+from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
+from django.utils import timezone
 
 from .forms import (
-    ExerciseForm,
-    HospitalRecordForm,
-    MedicationForm,
-    MessageForm,
-    SleepForm,
+    BloodTestResultFormSet, LabTestResultFormSet,
+    ExerciseForm, HospitalRecordForm,
+    MedicationForm, MessageForm, SleepForm,
+    DailyActivityForm, AppointmentForm, HealthTipForm
 )
-from .models import Exercise, HospitalRecord, Medication, Message, Sleep
+from .models import Exercise, HospitalRecord, Medication, Message, Sleep, Appointment, DailyActivity, HealthTip, BloodTestResult, LabTestResult
 from .utils import send_message_notification_email
 
 
@@ -202,63 +204,211 @@ def sleep_delete(request, pk):
 # Dashboard and Reports
 @login_required
 def health_dashboard(request):
-    """Ana sayfa dashboard'u."""
-    if not request.user.is_authenticated:
-        return redirect("login")
+    """Sağlık dashboard'u"""
+    try:
+        today = timezone.now().date()
+        start_date = today - timedelta(days=7)
 
-    # İlaçlar
-    medication_count = Medication.objects.filter(user=request.user).count()
-    recent_medications = Medication.objects.filter(user=request.user).order_by("-created_at")[:5]
+        # Son 7 günlük uyku verileri
+        sleep_data = Sleep.objects.filter(
+            user=request.user,
+            date__gte=start_date,
+            date__lte=today
+        ).order_by('date')
 
-    # Egzersizler
-    exercise_count = Exercise.objects.filter(user=request.user).count()
-    recent_exercises = Exercise.objects.filter(user=request.user).order_by("-date")[:5]
+        # Eksik günleri doldur
+        all_dates = [(start_date + timedelta(days=x)) for x in range((today - start_date).days + 1)]
+        sleep_dict = {sleep.date: float(sleep.duration) for sleep in sleep_data}
+        sleep_labels = [date.strftime('%d.%m') for date in all_dates]
+        sleep_durations = [sleep_dict.get(date, 0) for date in all_dates]
 
-    # Hastane kayıtları
-    hospital_record_count = HospitalRecord.objects.filter(user=request.user).count()
-    recent_hospital_records = HospitalRecord.objects.filter(user=request.user).order_by("-date")[:5]
+        # Egzersiz dağılımı
+        exercise_data = Exercise.objects.filter(
+            user=request.user,
+            date__gte=start_date,
+            date__lte=today
+        ).values('exercise_type').annotate(count=Count('id'))
 
-    # Son aktiviteleri birleştir
-    recent_activities = []
-    for medication in recent_medications:
-        recent_activities.append(
-            {
-                "date": medication.created_at,
-                "activity_type": "medication",
-                "description": f"{medication.name} - {medication.dosage}",
-                "get_absolute_url": lambda: reverse("health_data:medication_detail", args=[medication.pk]),
-            }
-        )
-    for exercise in recent_exercises:
-        recent_activities.append(
-            {
-                "date": exercise.date,
-                "activity_type": "exercise",
-                "description": f"{exercise.name} - {exercise.duration} dk",
-                "get_absolute_url": lambda: reverse("health_data:exercise_detail", args=[exercise.pk]),
-            }
-        )
-    for record in recent_hospital_records:
-        recent_activities.append(
-            {
-                "date": record.date,
-                "activity_type": "hospital",
-                "description": f"{record.title} - {record.hospital_name}",
-                "get_absolute_url": lambda: reverse("health_data:hospital_record_detail", args=[record.pk]),
-            }
-        )
+        exercise_labels = [ex['exercise_type'] for ex in exercise_data]
+        exercise_counts = [ex['count'] for ex in exercise_data]
 
-    # Tarihe göre sırala
-    recent_activities.sort(key=lambda x: x["date"], reverse=True)
-    recent_activities = recent_activities[:10]  # En son 10 aktivite
+        # Günlük aktivite verileri
+        daily_activity = DailyActivity.objects.filter(
+            user=request.user,
+            date=today
+        ).first()
 
-    context = {
-        "medication_count": medication_count,
-        "exercise_count": exercise_count,
-        "hospital_record_count": hospital_record_count,
-        "recent_activities": recent_activities,
-    }
-    return render(request, "core/dashboard.html", context)
+        if not daily_activity:
+            daily_activity = DailyActivity.objects.create(
+                user=request.user,
+                date=today,
+                steps=0,
+                water_intake=0
+            )
+
+        # Günlük hedefler
+        daily_goals = {
+            'steps': 10000,
+            'water': 2.5,  # Litre
+            'sleep': 8,    # Saat
+        }
+
+        # Özet veriler
+        summary_data = {
+            'daily_steps': daily_activity.steps or 0,
+            'daily_water': float(daily_activity.water_intake or 0),
+            'calories_burned': Exercise.objects.filter(
+                user=request.user,
+                date=today
+            ).aggregate(total=Sum('calories_burned'))['total'] or 0,
+            'avg_sleep': Sleep.objects.filter(
+                user=request.user,
+                date__gte=start_date,
+                date__lte=today
+            ).aggregate(avg=Avg('duration'))['avg'] or 0,
+        }
+
+        # Aktif ilaçlar
+        active_medications = Medication.objects.filter(
+            user=request.user,
+            is_active=True,
+            start_date__lte=today,
+            end_date__gte=today
+        ).order_by('start_date')
+
+        # Yaklaşan randevular
+        upcoming_appointments = Appointment.objects.filter(
+            patient=request.user,
+            date__gte=today,
+            is_active=True
+        ).order_by('date', 'time')[:5]
+
+        # Sağlık ipucu
+        health_tip = HealthTip.objects.filter(is_active=True).order_by('?').first()
+
+        context = {
+            'sleep_labels': json.dumps(sleep_labels),
+            'sleep_durations': json.dumps(sleep_durations),
+            'exercise_labels': json.dumps(exercise_labels),
+            'exercise_counts': json.dumps(exercise_counts),
+            'daily_goals': daily_goals,
+            'summary_data': summary_data,
+            'active_medications': active_medications,
+            'upcoming_appointments': upcoming_appointments,
+            'health_tip': health_tip,
+            'daily_activity': daily_activity,
+        }
+        return render(request, 'health_data/health_dashboard.html', context)
+    except Exception as e:
+        messages.error(request, f'Dashboard verileri yüklenirken bir hata oluştu: {str(e)}')
+        return redirect('core:dashboard')
+
+
+@login_required
+def update_daily_activity(request):
+    """Günlük aktivite güncelleme"""
+    if request.method == 'POST':
+        daily_activity = DailyActivity.objects.filter(
+            user=request.user,
+            date=timezone.now().date()
+        ).first()
+
+        if not daily_activity:
+            daily_activity = DailyActivity(user=request.user)
+
+        form = DailyActivityForm(request.POST, instance=daily_activity)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Günlük aktivite başarıyla güncellendi.')
+            return redirect('core:dashboard')
+    else:
+        form = DailyActivityForm()
+
+    return render(request, 'health_data/daily_activity_form.html', {'form': form})
+
+
+@login_required
+def appointment_list(request):
+    """Randevu listesi"""
+    appointments = Appointment.objects.filter(
+        patient=request.user
+    ).order_by('-date', '-time')
+
+    return render(request, 'health_data/appointment_list.html', {
+        'appointments': appointments
+    })
+
+
+@login_required
+def appointment_create(request):
+    """Yeni randevu oluşturma"""
+    if request.method == 'POST':
+        form = AppointmentForm(request.POST)
+        if form.is_valid():
+            appointment = form.save(commit=False)
+            appointment.patient = request.user
+            appointment.save()
+            messages.success(request, 'Randevu başarıyla oluşturuldu.')
+            return redirect('health_data:appointment_list')
+    else:
+        form = AppointmentForm()
+
+    return render(request, 'health_data/appointment_form.html', {'form': form})
+
+
+@login_required
+def appointment_detail(request, pk):
+    """Randevu detayı"""
+    appointment = get_object_or_404(Appointment, pk=pk, patient=request.user)
+    return render(request, 'health_data/appointment_detail.html', {
+        'appointment': appointment
+    })
+
+
+@login_required
+def appointment_update(request, pk):
+    """Randevu güncelleme"""
+    appointment = get_object_or_404(Appointment, pk=pk, patient=request.user)
+    
+    if request.method == 'POST':
+        form = AppointmentForm(request.POST, instance=appointment)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Randevu başarıyla güncellendi.')
+            return redirect('health_data:appointment_detail', pk=pk)
+    else:
+        form = AppointmentForm(instance=appointment)
+
+    return render(request, 'health_data/appointment_form.html', {'form': form})
+
+
+@login_required
+def appointment_delete(request, pk):
+    """Randevu silme"""
+    appointment = get_object_or_404(Appointment, pk=pk, patient=request.user)
+    
+    if request.method == 'POST':
+        appointment.delete()
+        messages.success(request, 'Randevu başarıyla silindi.')
+        return redirect('health_data:appointment_list')
+
+    return render(request, 'health_data/appointment_confirm_delete.html', {
+        'appointment': appointment
+    })
+
+
+@login_required
+def health_tips(request):
+    """Sağlık ipuçları listesi"""
+    tips = HealthTip.objects.filter(is_active=True).order_by('-created_at')
+    return render(request, 'health_data/health_tips.html', {'tips': tips})
+
+
+@login_required
+def health_tip_detail(request, pk):
+    """Sağlık ipucu detayı"""
+    tip = get_object_or_404(HealthTip, pk=pk, is_active=True)
+    return render(request, 'health_data/health_tip_detail.html', {'tip': tip})
 
 
 @login_required

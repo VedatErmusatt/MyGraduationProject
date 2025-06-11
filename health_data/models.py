@@ -6,6 +6,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.urls import reverse
 
 User = get_user_model()
 
@@ -191,31 +192,82 @@ class Message(models.Model):
         self.save(update_fields=["is_read"])
 
 
-class Appointment(models.Model):
-    """Randevu modeli"""
+class DailyActivity(models.Model):
+    """Günlük aktivite takibi (adım sayısı, su tüketimi vb.)"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='daily_activities')
+    date = models.DateField(auto_now_add=True)
+    steps = models.PositiveIntegerField(default=0, verbose_name="Adım Sayısı")
+    water_intake = models.DecimalField(max_digits=4, decimal_places=1, default=0, verbose_name="Su Tüketimi (L)")
+    notes = models.TextField(blank=True, null=True, verbose_name="Notlar")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
-    patient = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="health_patient_appointments"
+    class Meta:
+        verbose_name = "Günlük Aktivite"
+        verbose_name_plural = "Günlük Aktiviteler"
+        ordering = ['-date']
+        unique_together = ['user', 'date']
+
+    def __str__(self):
+        return f"{self.user.get_full_name()} - {self.date}"
+
+    def get_absolute_url(self):
+        return reverse('health_data:daily_activity_detail', args=[str(self.id)])
+
+
+class HealthTip(models.Model):
+    """Sağlık ipuçları"""
+    title = models.CharField(max_length=200, verbose_name="Başlık")
+    content = models.TextField(verbose_name="İçerik")
+    category = models.CharField(
+        max_length=50,
+        choices=[
+            ('general', 'Genel'),
+            ('exercise', 'Egzersiz'),
+            ('nutrition', 'Beslenme'),
+            ('sleep', 'Uyku'),
+            ('medication', 'İlaç Kullanımı'),
+            ('mental', 'Mental Sağlık'),
+        ],
+        default='general',
+        verbose_name="Kategori"
     )
-    doctor = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="health_doctor_appointments"
-    )
-    date = models.DateTimeField(verbose_name="Randevu Tarihi")
-    notes = models.TextField(blank=True, verbose_name="Notlar")
+    is_active = models.BooleanField(default=True, verbose_name="Aktif")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Sağlık İpucu"
+        verbose_name_plural = "Sağlık İpuçları"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title
+
+
+class Appointment(models.Model):
+    """Doktor randevuları"""
+    patient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='patient_appointments')
+    doctor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='doctor_appointments')
+    date = models.DateField(verbose_name="Tarih")
+    time = models.TimeField(verbose_name="Saat", default="09:00")
+    department = models.CharField(max_length=100, verbose_name="Bölüm", default="Genel")
+    notes = models.TextField(blank=True, null=True, verbose_name="Notlar")
     is_active = models.BooleanField(default=True, verbose_name="Aktif")
     notification_sent = models.BooleanField(default=False, verbose_name="Bildirim Gönderildi")
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Oluşturulma Tarihi")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Güncellenme Tarihi")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = "Randevu"
         verbose_name_plural = "Randevular"
-        ordering = ["-date"]
+        ordering = ['date', 'time']
 
     def __str__(self):
-        return (
-            f"{self.patient.get_full_name()} - {self.doctor.get_full_name()} - {self.date.strftime('%d.%m.%Y %H:%M')}"
-        )
+        return f"{self.patient.get_full_name()} - {self.doctor.get_full_name()} - {self.date} {self.time}"
+
+    def get_absolute_url(self):
+        return reverse('health_data:appointment_detail', args=[str(self.id)])
 
 
 class HospitalRecord(models.Model):

@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.forms import inlineformset_factory
 from django.utils import timezone
 
-from .models import BloodTestResult, Exercise, HospitalRecord, LabTestResult, Medication, Message, Sleep
+from .models import BloodTestResult, Exercise, HospitalRecord, LabTestResult, Medication, Message, Sleep, DailyActivity, Appointment, HealthTip
 
 
 class MedicationForm(forms.ModelForm):
@@ -100,8 +100,9 @@ class MedicationForm(forms.ModelForm):
 class ExerciseForm(forms.ModelForm):
     class Meta:
         model = Exercise
-        fields = ["date", "duration", "intensity", "calories_burned", "notes"]
+        fields = ["exercise_type", "date", "duration", "intensity", "calories_burned", "notes"]
         widgets = {
+            "exercise_type": forms.Select(attrs={"class": "form-control"}),
             "date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "duration": forms.NumberInput(attrs={"class": "form-control", "min": "1", "step": "1"}),
             "intensity": forms.NumberInput(attrs={"class": "form-control", "min": "1", "max": "10", "step": "1"}),
@@ -208,3 +209,60 @@ BloodTestResultFormSet: Type[forms.models.BaseInlineFormSet] = inlineformset_fac
 LabTestResultFormSet: Type[forms.models.BaseInlineFormSet] = inlineformset_factory(
     HospitalRecord, LabTestResult, fields=["test_name", "result", "interpretation"], extra=1, can_delete=True
 )
+
+
+class DailyActivityForm(forms.ModelForm):
+    """Günlük aktivite formu"""
+    class Meta:
+        model = DailyActivity
+        fields = ['steps', 'water_intake', 'notes']
+        widgets = {
+            'steps': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
+            'water_intake': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'step': '0.1'}),
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+        labels = {
+            'steps': 'Adım Sayısı',
+            'water_intake': 'Su Tüketimi (L)',
+            'notes': 'Notlar',
+        }
+
+
+class AppointmentForm(forms.ModelForm):
+    """Randevu formu"""
+    class Meta:
+        model = Appointment
+        fields = ['doctor', 'date', 'time', 'department', 'notes']
+        widgets = {
+            'doctor': forms.Select(attrs={'class': 'form-control'}),
+            'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+            'department': forms.TextInput(attrs={'class': 'form-control'}),
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+        labels = {
+            'doctor': 'Doktor',
+            'date': 'Tarih',
+            'time': 'Saat',
+            'department': 'Bölüm',
+            'notes': 'Notlar',
+        }
+
+
+class HealthTipForm(forms.ModelForm):
+    """Sağlık ipucu formu"""
+    class Meta:
+        model = HealthTip
+        fields = ['title', 'content', 'category', 'is_active']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'category': forms.Select(attrs={'class': 'form-control'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+        labels = {
+            'title': 'Başlık',
+            'content': 'İçerik',
+            'category': 'Kategori',
+            'is_active': 'Aktif',
+        }

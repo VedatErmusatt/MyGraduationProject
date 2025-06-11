@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Randevu Sil{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Randevu Sil
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        <strong>{{ appointment.date|date:"d.m.Y" }} {{ appointment.time|time:"H:i" }}</strong> tarihli randevuyu silmek istediğinizden emin misiniz?
+                    </p>
+                    <p class="text-danger">
+                        <i class="fas fa-info-circle me-2"></i>Bu işlem geri alınamaz!
+                    </p>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Evet, Sil
+                            </button>
+                            <a href="{% url 'health_data:appointment_detail' appointment.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>İptal
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

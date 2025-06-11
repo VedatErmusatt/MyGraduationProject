@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sağlık İpuçları{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">Sağlık İpuçları</h2>
+
+    {% if tips %}
+    <div class="row">
+        {% for tip in tips %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">{{ tip.title }}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ tip.content|truncatewords:30 }}</p>
+                    <span class="badge bg-secondary">{{ tip.get_category_display }}</span>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'health_data:health_tip_detail' tip.pk %}" class="btn btn-primary w-100">
+                        <i class="fas fa-arrow-right me-2"></i>Devamını Oku
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>Henüz sağlık ipucu bulunmuyor.
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 
