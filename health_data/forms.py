@@ -109,6 +109,14 @@ class MedicationForm(forms.ModelForm):
 
 
 class ExerciseForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Format the date field value for HTML5 date input if instance exists
+        if self.instance and self.instance.date:
+            self.initial['date'] = self.instance.date.strftime('%Y-%m-%d')
+        elif not self.instance.pk:  # If it's a new instance
+            self.initial['date'] = timezone.now().strftime('%Y-%m-%d')
+
     class Meta:
         model = Exercise
         fields = ["exercise_type", "date", "duration", "intensity", "calories_burned", "notes"]
@@ -119,6 +127,19 @@ class ExerciseForm(forms.ModelForm):
             "intensity": forms.NumberInput(attrs={"class": "form-control", "min": "1", "max": "10", "step": "1"}),
             "calories_burned": forms.NumberInput(attrs={"class": "form-control", "min": "0", "step": "1"}),
             "notes": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+        }
+        labels = {
+            "exercise_type": "Egzersiz Türü",
+            "date": "Tarih",
+            "duration": "Süre (dakika)",
+            "intensity": "Yoğunluk (1-10)",
+            "calories_burned": "Yakılan Kalori",
+            "notes": "Notlar"
+        }
+        help_texts = {
+            "duration": "Egzersiz süresini dakika cinsinden girin",
+            "intensity": "Egzersiz yoğunluğunu 1 (çok hafif) ile 10 (çok yoğun) arasında belirtin",
+            "calories_burned": "Yakılan kalori miktarını girin (isteğe bağlı)"
         }
 
 
@@ -143,8 +164,11 @@ class SleepForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if not self.instance.pk:  # Yeni kayıt oluşturuluyorsa
-            self.initial["date"] = timezone.now().date()
+        # Format the date field value for HTML5 date input if instance exists
+        if self.instance and self.instance.date:
+            self.initial['date'] = self.instance.date.strftime('%Y-%m-%d')
+        elif not self.instance.pk:  # If it's a new instance
+            self.initial['date'] = timezone.now().strftime('%Y-%m-%d')
 
     def clean(self):
         cleaned_data = super().clean()
