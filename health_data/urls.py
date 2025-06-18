@@ -34,8 +34,6 @@ urlpatterns = [
     path("sleep/<int:pk>/", views.sleep_detail, name="sleep_detail"),
     path("sleep/<int:pk>/edit/", views.sleep_edit, name="sleep_edit"),
     path("sleep/<int:pk>/delete/", views.sleep_delete, name="sleep_delete"),
-    # Dashboard
-    path("dashboard/", views.health_dashboard, name="health_dashboard"),
     # Günlük aktivite
     path("daily-activity/update/", views.update_daily_activity, name="update_daily_activity"),
     # Randevular

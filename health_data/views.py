@@ -1,13 +1,12 @@
 # Create your views here.
 
-import json
 from datetime import datetime, timedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import PermissionDenied
-from django.db.models import Avg, Count, Sum
+from django.db.models import Avg, Sum
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
@@ -210,91 +209,6 @@ def sleep_delete(request, pk):
         messages.success(request, "Uyku kaydı başarıyla silindi.")
         return redirect("health_data:sleep_list")
     return render(request, "health_data/sleep_delete.html", {"sleep": sleep})
-
-
-# Dashboard and Reports
-@login_required
-def health_dashboard(request):
-    """Sağlık dashboard'u"""
-    try:
-        today = timezone.now().date()
-        start_date = today - timedelta(days=7)
-
-        # Son 7 günlük uyku verileri
-        sleep_data = Sleep.objects.filter(user=request.user, date__gte=start_date, date__lte=today).order_by("date")
-
-        # Eksik günleri doldur
-        all_dates = [(start_date + timedelta(days=x)) for x in range((today - start_date).days + 1)]
-        sleep_dict = {sleep.date: float(sleep.duration) for sleep in sleep_data}
-        sleep_labels = [date.strftime("%d.%m") for date in all_dates]
-        sleep_durations = [sleep_dict.get(date, 0) for date in all_dates]
-
-        # Egzersiz dağılımı
-        exercise_data = (
-            Exercise.objects.filter(user=request.user, date__gte=start_date, date__lte=today)
-            .values("exercise_type")
-            .annotate(count=Count("id"))
-        )
-
-        exercise_labels = [ex["exercise_type"] for ex in exercise_data]
-        exercise_counts = [ex["count"] for ex in exercise_data]
-
-        # Günlük aktivite verileri
-        daily_activity = DailyActivity.objects.filter(user=request.user, date=today).first()
-
-        if not daily_activity:
-            daily_activity = DailyActivity.objects.create(user=request.user, date=today, steps=0, water_intake=0)
-
-        # Günlük hedefler
-        daily_goals = {
-            "steps": 10000,
-            "water": 2.5,  # Litre
-            "sleep": 8,  # Saat
-        }
-
-        # Özet veriler
-        summary_data = {
-            "daily_steps": daily_activity.steps or 0,
-            "daily_water": float(daily_activity.water_intake or 0),
-            "calories_burned": Exercise.objects.filter(user=request.user, date=today).aggregate(
-                total=Sum("calories_burned")
-            )["total"]
-            or 0,
-            "avg_sleep": Sleep.objects.filter(user=request.user, date__gte=start_date, date__lte=today).aggregate(
-                avg=Avg("duration")
-            )["avg"]
-            or 0,
-        }
-
-        # Aktif ilaçlar
-        active_medications = Medication.objects.filter(
-            user=request.user, is_active=True, start_date__lte=today, end_date__gte=today
-        ).order_by("start_date")
-
-        # Yaklaşan randevular
-        upcoming_appointments = Appointment.objects.filter(
-            patient=request.user, date__gte=today, is_active=True
-        ).order_by("date", "time")[:5]
-
-        # Sağlık ipucu
-        health_tip = HealthTip.objects.filter(is_active=True).order_by("?").first()
-
-        context = {
-            "sleep_labels": json.dumps(sleep_labels),
-            "sleep_durations": json.dumps(sleep_durations),
-            "exercise_labels": json.dumps(exercise_labels),
-            "exercise_counts": json.dumps(exercise_counts),
-            "daily_goals": daily_goals,
-            "summary_data": summary_data,
-            "active_medications": active_medications,
-            "upcoming_appointments": upcoming_appointments,
-            "health_tip": health_tip,
-            "daily_activity": daily_activity,
-        }
-        return render(request, "health_data/health_dashboard.html", context)
-    except Exception as e:
-        messages.error(request, f"Dashboard verileri yüklenirken bir hata oluştu: {str(e)}")
-        return redirect("core:dashboard")
 
 
 @login_required
