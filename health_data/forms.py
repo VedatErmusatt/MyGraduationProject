@@ -113,9 +113,9 @@ class ExerciseForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Format the date field value for HTML5 date input if instance exists
         if self.instance and self.instance.date:
-            self.initial['date'] = self.instance.date.strftime('%Y-%m-%d')
+            self.initial["date"] = self.instance.date.strftime("%Y-%m-%d")
         elif not self.instance.pk:  # If it's a new instance
-            self.initial['date'] = timezone.now().strftime('%Y-%m-%d')
+            self.initial["date"] = timezone.now().strftime("%Y-%m-%d")
 
     class Meta:
         model = Exercise
@@ -134,12 +134,12 @@ class ExerciseForm(forms.ModelForm):
             "duration": "Süre (dakika)",
             "intensity": "Yoğunluk (1-10)",
             "calories_burned": "Yakılan Kalori",
-            "notes": "Notlar"
+            "notes": "Notlar",
         }
         help_texts = {
             "duration": "Egzersiz süresini dakika cinsinden girin",
             "intensity": "Egzersiz yoğunluğunu 1 (çok hafif) ile 10 (çok yoğun) arasında belirtin",
-            "calories_burned": "Yakılan kalori miktarını girin (isteğe bağlı)"
+            "calories_burned": "Yakılan kalori miktarını girin (isteğe bağlı)",
         }
 
 
@@ -166,9 +166,9 @@ class SleepForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Format the date field value for HTML5 date input if instance exists
         if self.instance and self.instance.date:
-            self.initial['date'] = self.instance.date.strftime('%Y-%m-%d')
+            self.initial["date"] = self.instance.date.strftime("%Y-%m-%d")
         elif not self.instance.pk:  # If it's a new instance
-            self.initial['date'] = timezone.now().strftime('%Y-%m-%d')
+            self.initial["date"] = timezone.now().strftime("%Y-%m-%d")
 
     def clean(self):
         cleaned_data = super().clean()
