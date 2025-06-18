@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "chartjs",
+    "widget_tweaks",
     "django_celery_beat",
     "django_celery_results",
     # Local apps

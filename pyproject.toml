@@ -13,6 +13,8 @@ dependencies = [
     "django-celery-results>=2.6.0",
     "django-chartjs>=2.3.0",
     "django-crispy-forms>=2.3",
+    "django-environ>=0.12.0",
+    "django-widget-tweaks>=1.5.0",
     "pillow>=11.1.0",
     "python-dotenv>=1.1.0",
     "redis>=6.1.0",
@@ -35,6 +37,8 @@ extend-select = [
 
 [tool.mypy]
 plugins = ["mypy_django_plugin.main"]
+ignore_missing_imports = true
 
 [tool.django-stubs]
 django_settings_module = "chronicle.settings"
+ 

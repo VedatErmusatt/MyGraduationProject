@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load widget_tweaks %}
 
 {% block content %}
 <div class="container py-4">
@@ -25,7 +26,7 @@
                             {% for field in form %}
                             <div class="mb-3 col-md-6">
                                 <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                                {{ field|add_class:'form-control' }}
+                                {% render_field field class="form-control" %}
                                 {% if field.help_text %}
                                 <div class="form-text">{{ field.help_text }}</div>
                                 {% endif %}
@@ -46,7 +47,7 @@
                                     {% if field.name != 'DELETE' %}
                                     <div class="mb-2">
                                         <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                                        {{ field|add_class:'form-control' }}
+                                        {% render_field field class="form-control" %}
                                         {% if field.help_text %}
                                         <div class="form-text">{{ field.help_text }}</div>
                                         {% endif %}
@@ -78,7 +79,7 @@
                                     {% if field.name != 'DELETE' %}
                                     <div class="mb-2">
                                         <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                                        {{ field|add_class:'form-control' }}
+                                        {% render_field field class="form-control" %}
                                         {% if field.help_text %}
                                         <div class="form-text">{{ field.help_text }}</div>
                                         {% endif %}

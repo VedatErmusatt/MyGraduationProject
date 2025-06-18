@@ -336,3 +336,52 @@ class LabTestResult(models.Model):
 
     def __str__(self):
         return f"{self.test_name} - {self.hospital_record.date}"
+
+
+class MotivationVideo(models.Model):
+    CATEGORY_CHOICES = [
+        ("confidence", "Özgüven"),
+        ("focus", "Odaklanma"),
+        ("productivity", "Üretkenlik"),
+        ("morning_routine", "Sabah Rutini"),
+        ("other", "Diğer"),
+    ]
+
+    VIDEO_SOURCE_CHOICES = [
+        ("youtube", "YouTube"),
+        ("vimeo", "Vimeo"),
+        ("local", "Yerel Video"),
+    ]
+
+    title = models.CharField("Başlık", max_length=200)
+    description = models.TextField("Açıklama", max_length=500)
+    category = models.CharField("Kategori", max_length=50, choices=CATEGORY_CHOICES)
+    video_source = models.CharField("Video Kaynağı", max_length=20, choices=VIDEO_SOURCE_CHOICES)
+    video_url = models.URLField("Video URL", help_text="YouTube/Vimeo linki veya yerel video dosyası yolu")
+    duration = models.PositiveIntegerField("Süre (saniye)", help_text="Video süresi (saniye cinsinden)")
+    created_at = models.DateTimeField("Eklenme Tarihi", auto_now_add=True)
+    is_active = models.BooleanField("Aktif", default=True)
+
+    class Meta:
+        verbose_name = "Motivasyon Videosu"
+        verbose_name_plural = "Motivasyon Videoları"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.title
+
+    def get_duration_display(self):
+        minutes = self.duration // 60
+        seconds = self.duration % 60
+        return f"{minutes}:{seconds:02d}"
+
+    def get_embed_url(self):
+        if self.video_source == "youtube":
+            # YouTube video ID'sini çıkar
+            video_id = self.video_url.split("v=")[-1].split("&")[0]
+            return f"https://www.youtube.com/embed/{video_id}"
+        elif self.video_source == "vimeo":
+            # Vimeo video ID'sini çıkar
+            video_id = self.video_url.split("/")[-1]
+            return f"https://player.vimeo.com/video/{video_id}"
+        return self.video_url  # Yerel videolar için direkt URL'i döndür

@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Motivasyon Videoları - Kronik Sağlık Uygulaması{% endblock %}
+
+{% block extra_css %}
+<style>
+    .video-card {
+        height: 100%;
+        transition: transform 0.2s;
+    }
+    .video-card:hover {
+        transform: translateY(-5px);
+    }
+    .video-thumbnail {
+        position: relative;
+        padding-bottom: 56.25%; /* 16:9 aspect ratio */
+        height: 0;
+        overflow: hidden;
+    }
+    .video-thumbnail iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        border-radius: 0.5rem 0.5rem 0 0;
+    }
+    .category-filter {
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        padding: 0.5rem 0;
+    }
+    .category-filter::-webkit-scrollbar {
+        height: 4px;
+    }
+    .category-filter::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    .category-filter::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 2px;
+    }
+    .category-filter .btn {
+        margin-right: 0.5rem;
+    }
+    @media (max-width: 768px) {
+        .video-card {
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <h1 class="h3 fw-bold mb-0 text-primary">
+            <i class="fas fa-video me-2"></i>Motivasyon Videoları
+        </h1>
+    </div>
+
+    <!-- Kategori Filtreleme -->
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-body">
+            <div class="category-filter">
+                <a href="{% url 'health_data:motivation_videos' %}" 
+                   class="btn {% if not selected_category %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    Tümü
+                </a>
+                {% for key, name in categories.items %}
+                <a href="?category={{ key }}" 
+                   class="btn {% if selected_category == key %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    {{ name }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Listesi -->
+    <div class="row g-4">
+        {% for video in videos %}
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card shadow-sm border-0 video-card">
+                <div class="video-thumbnail">
+                    <iframe src="{{ video.get_embed_url }}" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen></iframe>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ video.title }}</h5>
+                    <p class="card-text text-muted small mb-2">
+                        <i class="fas fa-tag me-1"></i>{{ video.get_category_display }}
+                        <span class="mx-2">•</span>
+                        <i class="fas fa-clock me-1"></i>{{ video.get_duration_display }}
+                    </p>
+                    <p class="card-text">{{ video.description|truncatewords:30 }}</p>
+                </div>
+                <div class="card-footer bg-white border-0">
+                    <small class="text-muted">
+                        <i class="fas fa-calendar-alt me-1"></i>{{ video.created_at|naturaltime }}
+                    </small>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-video fa-3x text-muted mb-3"></i>
+                <p class="text-muted">Henüz video eklenmemiş.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 

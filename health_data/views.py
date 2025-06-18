@@ -30,6 +30,7 @@ from .models import (
     HospitalRecord,
     Medication,
     Message,
+    MotivationVideo,
     Sleep,
 )
 from .utils import send_message_notification_email
@@ -526,3 +527,22 @@ class HospitalRecordDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteVi
     def delete(self, request, *args, **kwargs):
         messages.success(request, "Hastane kaydı başarıyla silindi.")
         return super().delete(request, *args, **kwargs)
+
+
+@login_required
+def motivation_videos(request):
+    """Motivasyon videoları listesi"""
+    category = request.GET.get("category", "")
+    videos = MotivationVideo.objects.filter(is_active=True)
+
+    if category:
+        videos = videos.filter(category=category)
+
+    categories = dict(MotivationVideo.CATEGORY_CHOICES)
+
+    context = {
+        "videos": videos,
+        "categories": categories,
+        "selected_category": category,
+    }
+    return render(request, "health_data/motivation_videos.html", context)

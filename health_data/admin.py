@@ -10,6 +10,7 @@ from .models import (
     HealthTip,
     Medication,
     Message,
+    MotivationVideo,
     Sleep,
 )
 
@@ -91,5 +92,14 @@ class HealthTipAdmin(admin.ModelAdmin):
     list_display = ("title", "category", "is_active", "created_at")
     list_filter = ("category", "is_active", "created_at")
     search_fields = ("title", "content")
+    date_hierarchy = "created_at"
+    ordering = ("-created_at",)
+
+
+@admin.register(MotivationVideo)
+class MotivationVideoAdmin(admin.ModelAdmin):
+    list_display = ("title", "category", "video_source", "get_duration_display", "is_active", "created_at")
+    list_filter = ("category", "video_source", "is_active", "created_at")
+    search_fields = ("title", "description")
     date_hierarchy = "created_at"
     ordering = ("-created_at",)

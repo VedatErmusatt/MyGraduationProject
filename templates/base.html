@@ -28,42 +28,80 @@
 </head>
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white">
-        <div class="container">
+    <nav class="navbar navbar-expand-xl navbar-light bg-white border-bottom sticky-top">
+        <div class="container-fluid px-4">
             <a class="navbar-brand d-flex align-items-center" href="{% url 'core:home' %}">
-                <i class="fas fa-heartbeat text-primary me-2"></i> Kronik Sağlık
+                <i class="fas fa-heartbeat text-primary me-2 fs-4"></i>
+                <span class="fw-bold fs-4">Kronik Sağlık</span>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="mainNavbar">
-                {% if user.is_authenticated %}
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'core:dashboard' %}"><i class="fas fa-home me-1"></i> Ana Sayfa</a></li>
-                    <li class="nav-item"><a class="nav-link {% if 'hospital_record' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'health_data:hospital_record_list' %}"><i class="fas fa-hospital me-1"></i> Hastane Kayıtları</a></li>
-                    <li class="nav-item"><a class="nav-link {% if 'medication' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'health_data:medication_list' %}"><i class="fas fa-pills me-1"></i> İlaçlar</a></li>
-                    <li class="nav-item"><a class="nav-link {% if 'exercise' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'health_data:exercise_list' %}"><i class="fas fa-running me-1"></i> Egzersizler</a></li>
-                    <li class="nav-item"><a class="nav-link {% if 'sleep' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'health_data:sleep_list' %}"><i class="fas fa-moon me-1"></i> Uyku</a></li>
-                    <li class="nav-item"><a class="nav-link {% if 'message' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'health_data:message_list' %}"><i class="fas fa-envelope me-1"></i> Mesajlar{% if unread_message_count > 0 %} <span class="badge bg-danger ms-1">{{ unread_message_count }}</span>{% endif %}</a></li>
-                </ul>
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-user-circle me-1"></i> {{ user.get_full_name|default:user.email }}
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link px-3 {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'core:dashboard' %}">
+                            <i class="fas fa-home me-2"></i>Ana Sayfa
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" href="{% url 'users:profile' %}">Profil</a></li>
+                    </li>
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link px-3 {% if 'hospital_record' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'health_data:hospital_record_list' %}">
+                            <i class="fas fa-hospital me-2"></i>Hastane Kayıtları
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3 {% if 'medication' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'health_data:medication_list' %}">
+                            <i class="fas fa-pills me-2"></i>İlaçlar
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3 {% if 'exercise' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'health_data:exercise_list' %}">
+                            <i class="fas fa-running me-2"></i>Egzersizler
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3 {% if 'sleep' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'health_data:sleep_list' %}">
+                            <i class="fas fa-bed me-2"></i>Uyku
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3 {% if 'motivation_videos' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'health_data:motivation_videos' %}">
+                            <i class="fas fa-video me-2"></i>Motivasyon Videoları
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3 {% if 'message' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'health_data:message_list' %}">
+                            <i class="fas fa-envelope me-2"></i>Mesajlar{% if unread_message_count > 0 %} <span class="badge bg-danger ms-1">{{ unread_message_count }}</span>{% endif %}
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle px-3" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-2"></i>{{ user.email }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{% url 'users:profile' %}"><i class="fas fa-id-card me-2"></i>Profil</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{% url 'users:logout' %}">Çıkış Yap</a></li>
+                            <li><a class="dropdown-item text-danger" href="{% url 'users:logout' %}"><i class="fas fa-sign-out-alt me-2"></i>Çıkış</a></li>
                         </ul>
                     </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link px-3" href="{% url 'users:login' %}">
+                            <i class="fas fa-sign-in-alt me-2"></i>Giriş
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3" href="{% url 'users:register' %}">
+                            <i class="fas fa-user-plus me-2"></i>Kayıt Ol
+                        </a>
+                    </li>
+                    {% endif %}
                 </ul>
-                {% else %}
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'users:login' %}">Giriş Yap</a></li>
-                    <li class="nav-item"><a class="btn btn-primary ms-2" href="{% url 'users:register' %}">Kayıt Ol</a></li>
-                </ul>
-                {% endif %}
             </div>
         </div>
     </nav>
