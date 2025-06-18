@@ -18,8 +18,8 @@ from .models import EmergencyContact, HealthTip, Notification
 
 def home(request):
     """Ana sayfa görünümü"""
-    if request.user.is_authenticated:
-        return redirect("core:dashboard")
+    # if request.user.is_authenticated:
+    #     return redirect("core:dashboard")
     return render(request, "core/home.html")
 
 
@@ -63,10 +63,13 @@ def dashboard(request):
         exercise_counts = [ex["count"] for ex in exercise_data]
 
         # Günlük aktivite verileri
-        daily_activity = DailyActivity.objects.filter(user=request.user, date=today).first()
-
-        if not daily_activity:
-            daily_activity = DailyActivity.objects.create(user=request.user, date=today, steps=0, water_intake=0)
+        daily_activity, created = DailyActivity.objects.get_or_create(
+            user=request.user,
+            defaults={
+                "steps": 0,
+                "water_intake": 0,
+            },
+        )
 
         # Günlük hedefler
         daily_goals = {
@@ -102,7 +105,7 @@ def dashboard(request):
             "exercise_labels": json.dumps(exercise_labels),
             "exercise_counts": json.dumps(exercise_counts),
         }
-        return render(request, "users/dashboard.html", context)
+        return render(request, "core/dashboard.html", context)
     except Exception as e:
         messages.error(request, f"Dashboard verileri yüklenirken bir hata oluştu: {str(e)}")
         return redirect("core:home")

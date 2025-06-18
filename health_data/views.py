@@ -215,19 +215,25 @@ def sleep_delete(request, pk):
 @login_required
 def update_daily_activity(request):
     """Günlük aktivite güncelleme"""
+
     if request.method == "POST":
-        daily_activity = DailyActivity.objects.filter(user=request.user, date=timezone.now().date()).first()
-
-        if not daily_activity:
-            daily_activity = DailyActivity(user=request.user)
-
-        form = DailyActivityForm(request.POST, instance=daily_activity)
+        form = DailyActivityForm(request.POST)
         if form.is_valid():
-            form.save()
+            # Use update_or_create to handle the unique constraint
+            daily_activity, created = DailyActivity.objects.update_or_create(
+                user=request.user,
+                defaults={
+                    "steps": form.cleaned_data["steps"],
+                    "water_intake": form.cleaned_data["water_intake"],
+                    "notes": form.cleaned_data["notes"],
+                },
+            )
             messages.success(request, "Günlük aktivite başarıyla güncellendi.")
             return redirect("core:dashboard")
     else:
-        form = DailyActivityForm()
+        # Get existing record or initialize empty form
+        daily_activity = DailyActivity.objects.filter(user=request.user).first()
+        form = DailyActivityForm(instance=daily_activity if daily_activity else None)
 
     return render(request, "health_data/daily_activity_form.html", {"form": form})
 

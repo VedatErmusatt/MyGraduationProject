@@ -13,8 +13,6 @@ from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView
 
-from health_data.models import Exercise, Medication, Sleep
-
 from .forms import CustomUserChangeForm, CustomUserCreationForm
 
 
@@ -118,23 +116,3 @@ class CustomPasswordResetCompleteView(TemplateView):
         context = super().get_context_data(**kwargs)
         context["login_url"] = reverse_lazy("users:login")
         return context
-
-
-@login_required
-def dashboard(request):
-    """Ana dashboard görünümü"""
-    # Aktif ilaçlar
-    medications = Medication.objects.filter(user=request.user, is_active=True)
-
-    # Son 7 günlük egzersizler
-    exercises = Exercise.objects.filter(user=request.user).order_by("-date")[:7]
-
-    # Son 7 günlük uyku kayıtları
-    sleeps = Sleep.objects.filter(user=request.user).order_by("-date")[:7]
-
-    context = {
-        "medications": medications,
-        "exercises": exercises,
-        "sleeps": sleeps,
-    }
-    return render(request, "users/dashboard.html", context)
