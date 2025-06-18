@@ -10,28 +10,26 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
-import os
 from pathlib import Path
 
-from dotenv import load_dotenv
-
-load_dotenv()
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+env = environ.Env()
+environ.Env.read_env(BASE_DIR / ".env")
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv(
-    "DJANGO_SECRET_KEY",
-    "django-insecure-o9kg-eii!3$a*$myblopwg%^ksmbcmvt%%jih855$h&$xig)@4",
-)
+SECRET_KEY = env("DJANGO_SECRET_KEY", default="django-insecure-o9kg-eii!3$a*$myblopwg%^ksmbcmvt%%jih855$h&$xig)@4")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "True") == "True"
+DEBUG = env("DEBUG", default=True, cast=bool)
 
 ALLOWED_HOSTS = ["*"]  # Change this in production
 
@@ -54,13 +52,13 @@ INSTALLED_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "chartjs",
+    "django_celery_beat",
+    "django_celery_results",
     # Local apps
     "core.apps.CoreConfig",
     "users.apps.UsersConfig",
     "health_data.apps.HealthDataConfig",
     "messaging.apps.MessagingConfig",
-    "django_celery_beat",
-    "django_celery_results",
 ]
 
 MIDDLEWARE = [
@@ -79,7 +77,7 @@ ROOT_URLCONF = "chronicle.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, "templates")],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -143,12 +141,12 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
+    BASE_DIR / "static",
 ]
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_ROOT = BASE_DIR / "media"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -171,15 +169,15 @@ LOGIN_URL = "login"
 EMAIL_HOST = "smtp.gmail.com"  # Gmail için
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")  # Gmail adresiniz
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")  # Gmail uygulama şifreniz
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")  # Varsayılan gönderen email adresi
+EMAIL_HOST_USER = env("EMAIL_HOST_USER")  # Gmail adresiniz
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")  # Gmail uygulama şifreniz
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")  # Varsayılan gönderen email adresi
 
 # Site ID
 SITE_ID = 1
 
 # Site Domain
-SITE_DOMAIN = os.getenv("SITE_DOMAIN", "127.0.0.1:8000")
+SITE_DOMAIN = env("SITE_DOMAIN", default="127.0.0.1:8000")
 
 # AllAuth settings
 ACCOUNT_LOGIN_METHODS = {"email"}
@@ -205,6 +203,9 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # Logging ayarları
+LOGS_DIR = Path(BASE_DIR) / "logs"
+LOGS_DIR.mkdir(parents=True, exist_ok=True)
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -225,7 +226,7 @@ LOGGING = {
         },
         "file": {
             "class": "logging.FileHandler",
-            "filename": os.path.join(BASE_DIR, "logs", "chronicle.log"),
+            "filename": LOGS_DIR / "chronicle.log",
             "formatter": "verbose",
         },
     },
@@ -247,8 +248,3 @@ LOGGING = {
         },
     },
 }
-
-# Logs dizinini oluştur
-LOGS_DIR = os.path.join(BASE_DIR, "logs")
-if not os.path.exists(LOGS_DIR):
-    os.makedirs(LOGS_DIR)
