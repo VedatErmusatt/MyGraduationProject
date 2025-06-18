@@ -4,8 +4,13 @@ from django.contrib import admin
 from django.utils.html import format_html
 
 from .models import (
-    BloodTestResult, Exercise, HospitalRecord, LabTestResult,
-    Medication, Message, Sleep, DailyActivity, Appointment, HealthTip
+    Appointment,
+    DailyActivity,
+    Exercise,
+    HealthTip,
+    Medication,
+    Message,
+    Sleep,
 )
 
 
@@ -40,13 +45,20 @@ class MedicationAdmin(admin.ModelAdmin):
 
 @admin.register(Appointment)
 class AppointmentAdmin(admin.ModelAdmin):
-    list_display = ('patient', 'doctor', 'date', 'time', 'department', 'is_active')
-    list_filter = ('date', 'is_active', 'department')
-    search_fields = ('patient__username', 'patient__first_name', 'patient__last_name',
-                    'doctor__username', 'doctor__first_name', 'doctor__last_name',
-                    'department', 'notes')
-    date_hierarchy = 'date'
-    ordering = ('-date', '-time')
+    list_display = ("patient", "doctor", "date", "time", "department", "is_active")
+    list_filter = ("date", "is_active", "department")
+    search_fields = (
+        "patient__username",
+        "patient__first_name",
+        "patient__last_name",
+        "doctor__username",
+        "doctor__first_name",
+        "doctor__last_name",
+        "department",
+        "notes",
+    )
+    date_hierarchy = "date"
+    ordering = ("-date", "-time")
 
 
 @admin.register(Exercise)
@@ -67,17 +79,17 @@ class SleepAdmin(admin.ModelAdmin):
 
 @admin.register(DailyActivity)
 class DailyActivityAdmin(admin.ModelAdmin):
-    list_display = ('user', 'date', 'steps', 'water_intake', 'created_at')
-    list_filter = ('date', 'user')
-    search_fields = ('user__username', 'user__first_name', 'user__last_name', 'notes')
-    date_hierarchy = 'date'
-    ordering = ('-date', '-created_at')
+    list_display = ("user", "date", "steps", "water_intake", "created_at")
+    list_filter = ("date", "user")
+    search_fields = ("user__username", "user__first_name", "user__last_name", "notes")
+    date_hierarchy = "date"
+    ordering = ("-date", "-created_at")
 
 
 @admin.register(HealthTip)
 class HealthTipAdmin(admin.ModelAdmin):
-    list_display = ('title', 'category', 'is_active', 'created_at')
-    list_filter = ('category', 'is_active', 'created_at')
-    search_fields = ('title', 'content')
-    date_hierarchy = 'created_at'
-    ordering = ('-created_at',)
+    list_display = ("title", "category", "is_active", "created_at")
+    list_filter = ("category", "is_active", "created_at")
+    search_fields = ("title", "content")
+    date_hierarchy = "created_at"
+    ordering = ("-created_at",)

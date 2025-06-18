@@ -5,7 +5,18 @@ from django.contrib.auth import get_user_model
 from django.forms import inlineformset_factory
 from django.utils import timezone
 
-from .models import BloodTestResult, Exercise, HospitalRecord, LabTestResult, Medication, Message, Sleep, DailyActivity, Appointment, HealthTip
+from .models import (
+    Appointment,
+    BloodTestResult,
+    DailyActivity,
+    Exercise,
+    HealthTip,
+    HospitalRecord,
+    LabTestResult,
+    Medication,
+    Message,
+    Sleep,
+)
 
 
 class MedicationForm(forms.ModelForm):
@@ -213,56 +224,59 @@ LabTestResultFormSet: Type[forms.models.BaseInlineFormSet] = inlineformset_facto
 
 class DailyActivityForm(forms.ModelForm):
     """Günlük aktivite formu"""
+
     class Meta:
         model = DailyActivity
-        fields = ['steps', 'water_intake', 'notes']
+        fields = ["steps", "water_intake", "notes"]
         widgets = {
-            'steps': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
-            'water_intake': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'step': '0.1'}),
-            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            "steps": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
+            "water_intake": forms.NumberInput(attrs={"class": "form-control", "min": "0", "step": "0.1"}),
+            "notes": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
         }
         labels = {
-            'steps': 'Adım Sayısı',
-            'water_intake': 'Su Tüketimi (L)',
-            'notes': 'Notlar',
+            "steps": "Adım Sayısı",
+            "water_intake": "Su Tüketimi (L)",
+            "notes": "Notlar",
         }
 
 
 class AppointmentForm(forms.ModelForm):
     """Randevu formu"""
+
     class Meta:
         model = Appointment
-        fields = ['doctor', 'date', 'time', 'department', 'notes']
+        fields = ["doctor", "date", "time", "department", "notes"]
         widgets = {
-            'doctor': forms.Select(attrs={'class': 'form-control'}),
-            'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
-            'department': forms.TextInput(attrs={'class': 'form-control'}),
-            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            "doctor": forms.Select(attrs={"class": "form-control"}),
+            "date": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+            "time": forms.TimeInput(attrs={"class": "form-control", "type": "time"}),
+            "department": forms.TextInput(attrs={"class": "form-control"}),
+            "notes": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
         }
         labels = {
-            'doctor': 'Doktor',
-            'date': 'Tarih',
-            'time': 'Saat',
-            'department': 'Bölüm',
-            'notes': 'Notlar',
+            "doctor": "Doktor",
+            "date": "Tarih",
+            "time": "Saat",
+            "department": "Bölüm",
+            "notes": "Notlar",
         }
 
 
 class HealthTipForm(forms.ModelForm):
     """Sağlık ipucu formu"""
+
     class Meta:
         model = HealthTip
-        fields = ['title', 'content', 'category', 'is_active']
+        fields = ["title", "content", "category", "is_active"]
         widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control'}),
-            'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
-            'category': forms.Select(attrs={'class': 'form-control'}),
-            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            "title": forms.TextInput(attrs={"class": "form-control"}),
+            "content": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
+            "category": forms.Select(attrs={"class": "form-control"}),
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
         labels = {
-            'title': 'Başlık',
-            'content': 'İçerik',
-            'category': 'Kategori',
-            'is_active': 'Aktif',
+            "title": "Başlık",
+            "content": "İçerik",
+            "category": "Kategori",
+            "is_active": "Aktif",
         }

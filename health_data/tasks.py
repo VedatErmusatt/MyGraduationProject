@@ -3,7 +3,8 @@ import logging
 from datetime import time, timedelta
 
 from celery import shared_task
-from django.template.loader import render_to_string
+
+# from django.template.loader import render_to_string
 from django.utils import timezone
 from django_celery_beat.models import CrontabSchedule, PeriodicTask
 
@@ -39,16 +40,16 @@ def check_appointments():
 def send_appointment_notification(appointment):
     """Randevu bildirimi gönder"""
     # Mesaj içeriğini hazırla
-    context = {
-        "appointment": appointment,
-        "patient_name": appointment.patient.get_full_name() or appointment.patient.email,
-        "doctor_name": appointment.doctor.get_full_name() or appointment.doctor.email,
-        "appointment_date": appointment.date.strftime("%d.%m.%Y %H:%M"),
-    }
+    # context = {
+    #     "appointment": appointment,
+    #     "patient_name": appointment.patient.get_full_name() or appointment.patient.email,
+    #     "doctor_name": appointment.doctor.get_full_name() or appointment.doctor.email,
+    #     "appointment_date": appointment.date.strftime("%d.%m.%Y %H:%M"),
+    # }
 
     # E-posta bildirimi gönder
-    subject = f"Randevu Hatırlatması: {appointment.date.strftime('%d.%m.%Y %H:%M')}"
-    message = render_to_string("health_data/email/appointment_reminder.html", context)
+    # subject = f"Randevu Hatırlatması: {appointment.date.strftime('%d.%m.%Y %H:%M')}"
+    # message = render_to_string("health_data/email/appointment_reminder.html", context)
 
     # Hastaya bildirim gönder
     # TODO
@@ -145,7 +146,7 @@ def send_medication_reminder(medication_id):
             message_type="reminder",
             related_medication=medication,
         )
-        logger.info(f"İlaç hatırlatma mesajı oluşturuldu: {medication.name} (ID: {medication_id})")
+        logger.info(f"İlaç hatırlatma mesajı oluşturuldu: {medication.name} (ID: {medication_id}) {message}")
 
         # Email bildirimi gönder
         try:

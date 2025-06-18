@@ -1,15 +1,16 @@
 # Create your views here.
 
+import json
+from datetime import timedelta
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.models import Avg, Count, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.db.models import Avg, Sum, Count
 from django.utils import timezone
-from datetime import timedelta
-import json
 
-from health_data.models import Exercise, Medication, Sleep, DailyActivity
+from health_data.models import DailyActivity, Exercise, Medication, Sleep
 
 from .forms import EmergencyContactForm
 from .models import EmergencyContact, HealthTip, Notification
@@ -31,11 +32,8 @@ def dashboard(request):
 
         # Aktif ilaçlar
         active_medications = Medication.objects.filter(
-            user=request.user,
-            is_active=True,
-            start_date__lte=today,
-            end_date__gte=today
-        ).order_by('start_date')
+            user=request.user, is_active=True, start_date__lte=today, end_date__gte=today
+        ).order_by("start_date")
 
         # Son 7 günün egzersizleri
         exercises = Exercise.objects.filter(user=request.user).order_by("-date")[:7]
@@ -44,64 +42,52 @@ def dashboard(request):
         sleep_records = Sleep.objects.filter(user=request.user).order_by("-sleep_time")[:7]
 
         # Son 7 günlük uyku verileri
-        sleep_data = Sleep.objects.filter(
-            user=request.user,
-            date__gte=start_date,
-            date__lte=today
-        ).order_by('date')
+        sleep_data = Sleep.objects.filter(user=request.user, date__gte=start_date, date__lte=today).order_by("date")
 
         # Eksik günleri doldur
         all_dates = [(start_date + timedelta(days=x)) for x in range((today - start_date).days + 1)]
         sleep_dict = {sleep.date: float(sleep.duration) for sleep in sleep_data}
-        sleep_labels = [date.strftime('%d.%m') for date in all_dates]
+        sleep_labels = [date.strftime("%d.%m") for date in all_dates]
         sleep_durations = [sleep_dict.get(date, 0) for date in all_dates]
 
         # Egzersiz dağılımı
-        exercise_data = Exercise.objects.filter(
-            user=request.user,
-            date__gte=start_date,
-            date__lte=today
-        ).values('exercise_type').annotate(count=Count('id'))
+        exercise_data = (
+            Exercise.objects.filter(user=request.user, date__gte=start_date, date__lte=today)
+            .values("exercise_type")
+            .annotate(count=Count("id"))
+        )
 
         # Egzersiz türlerini Türkçe olarak al
         exercise_type_map = dict(Exercise.EXERCISE_TYPES)
-        exercise_labels = [exercise_type_map.get(ex['exercise_type'], ex['exercise_type']) for ex in exercise_data]
-        exercise_counts = [ex['count'] for ex in exercise_data]
+        exercise_labels = [exercise_type_map.get(ex["exercise_type"], ex["exercise_type"]) for ex in exercise_data]
+        exercise_counts = [ex["count"] for ex in exercise_data]
 
         # Günlük aktivite verileri
-        daily_activity = DailyActivity.objects.filter(
-            user=request.user,
-            date=today
-        ).first()
+        daily_activity = DailyActivity.objects.filter(user=request.user, date=today).first()
 
         if not daily_activity:
-            daily_activity = DailyActivity.objects.create(
-                user=request.user,
-                date=today,
-                steps=0,
-                water_intake=0
-            )
+            daily_activity = DailyActivity.objects.create(user=request.user, date=today, steps=0, water_intake=0)
 
         # Günlük hedefler
         daily_goals = {
-            'steps': 10000,
-            'water': 2.5,  # Litre
-            'sleep': 8,    # Saat
+            "steps": 10000,
+            "water": 2.5,  # Litre
+            "sleep": 8,  # Saat
         }
 
         # Özet veriler
         summary_data = {
-            'daily_steps': daily_activity.steps or 0,
-            'daily_water': float(daily_activity.water_intake or 0),
-            'calories_burned': Exercise.objects.filter(
-                user=request.user,
-                date=today
-            ).aggregate(total=Sum('calories_burned'))['total'] or 0,
-            'avg_sleep': sleep_records.aggregate(avg=Avg('duration'))['avg'] or 0,
+            "daily_steps": daily_activity.steps or 0,
+            "daily_water": float(daily_activity.water_intake or 0),
+            "calories_burned": Exercise.objects.filter(user=request.user, date=today).aggregate(
+                total=Sum("calories_burned")
+            )["total"]
+            or 0,
+            "avg_sleep": sleep_records.aggregate(avg=Avg("duration"))["avg"] or 0,
         }
 
         # Sağlık ipucu
-        health_tip = HealthTip.objects.filter(is_active=True).order_by('?').first()
+        health_tip = HealthTip.objects.filter(is_active=True).order_by("?").first()
 
         context = {
             "active_medications": active_medications,
@@ -118,8 +104,8 @@ def dashboard(request):
         }
         return render(request, "users/dashboard.html", context)
     except Exception as e:
-        messages.error(request, f'Dashboard verileri yüklenirken bir hata oluştu: {str(e)}')
-        return redirect('core:home')
+        messages.error(request, f"Dashboard verileri yüklenirken bir hata oluştu: {str(e)}")
+        return redirect("core:home")
 
 
 @login_required

@@ -35,19 +35,16 @@ urlpatterns = [
     path("sleep/<int:pk>/edit/", views.sleep_edit, name="sleep_edit"),
     path("sleep/<int:pk>/delete/", views.sleep_delete, name="sleep_delete"),
     # Dashboard
-    path('dashboard/', views.health_dashboard, name='health_dashboard'),
-    
+    path("dashboard/", views.health_dashboard, name="health_dashboard"),
     # Günlük aktivite
-    path('daily-activity/update/', views.update_daily_activity, name='update_daily_activity'),
-    
+    path("daily-activity/update/", views.update_daily_activity, name="update_daily_activity"),
     # Randevular
-    path('appointments/', views.appointment_list, name='appointment_list'),
-    path('appointments/create/', views.appointment_create, name='appointment_create'),
-    path('appointments/<int:pk>/', views.appointment_detail, name='appointment_detail'),
-    path('appointments/<int:pk>/update/', views.appointment_update, name='appointment_update'),
-    path('appointments/<int:pk>/delete/', views.appointment_delete, name='appointment_delete'),
-    
+    path("appointments/", views.appointment_list, name="appointment_list"),
+    path("appointments/create/", views.appointment_create, name="appointment_create"),
+    path("appointments/<int:pk>/", views.appointment_detail, name="appointment_detail"),
+    path("appointments/<int:pk>/update/", views.appointment_update, name="appointment_update"),
+    path("appointments/<int:pk>/delete/", views.appointment_delete, name="appointment_delete"),
     # Sağlık ipuçları
-    path('health-tips/', views.health_tips, name='health_tips'),
-    path('health-tips/<int:pk>/', views.health_tip_detail, name='health_tip_detail'),
+    path("health-tips/", views.health_tips, name="health_tips"),
+    path("health-tips/<int:pk>/", views.health_tip_detail, name="health_tip_detail"),
 ]
