@@ -12,24 +12,24 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 
-import environ
+# import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-env = environ.Env()
-environ.Env.read_env(BASE_DIR / ".env")
+# env = environ.Env()
+# environ.Env.read_env(BASE_DIR / ".env")
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env("DJANGO_SECRET_KEY", default="django-insecure-o9kg-eii!3$a*$myblopwg%^ksmbcmvt%%jih855$h&$xig)@4")
+SECRET_KEY = "django-insecure-o9kg-eii!3$a*$myblopwg%^ksmbcmvt%%jih855$h&$xig)@4"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env("DEBUG", default=True, cast=bool)
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]  # Change this in production
 
@@ -48,11 +48,11 @@ INSTALLED_APPS = [
     # Third party apps
     "crispy_forms",
     "crispy_bootstrap5",
-    "allauth",
-    "allauth.account",
-    "allauth.socialaccount",
-    "chartjs",
-    "widget_tweaks",
+    # "allauth",
+    # "allauth.account",
+    # "allauth.socialaccount",
+    # "chartjs",
+    # "widget_tweaks",
     "django_celery_beat",
     "django_celery_results",
     # Local apps
@@ -70,7 +70,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "allauth.account.middleware.AccountMiddleware",
+    # "allauth.account.middleware.AccountMiddleware",  # geçici olarak kaldırıldı
 ]
 
 ROOT_URLCONF = "chronicle.urls"
@@ -170,15 +170,15 @@ LOGIN_URL = "users:login"
 EMAIL_HOST = "smtp.gmail.com"  # Gmail için
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = env("EMAIL_HOST_USER")  # Gmail adresiniz
-EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")  # Gmail uygulama şifreniz
-DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")  # Varsayılan gönderen email adresi
+EMAIL_HOST_USER = "your_gmail_address@gmail.com"  # Gmail adresiniz
+EMAIL_HOST_PASSWORD = "your_gmail_app_password"  # Gmail uygulama şifreniz
+DEFAULT_FROM_EMAIL = "your_default_from_email@example.com"  # Varsayılan gönderen email adresi
 
 # Site ID
 SITE_ID = 1
 
 # Site Domain
-SITE_DOMAIN = env("SITE_DOMAIN", default="127.0.0.1:8000")
+SITE_DOMAIN = "127.0.0.1:8000"
 
 # AllAuth settings
 ACCOUNT_LOGIN_METHODS = {"email"}

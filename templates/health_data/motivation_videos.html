@@ -9,6 +9,9 @@
     .video-card {
         height: 100%;
         transition: transform 0.2s;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
     }
     .video-card:hover {
         transform: translateY(-5px);
@@ -18,15 +21,35 @@
         padding-bottom: 56.25%; /* 16:9 aspect ratio */
         height: 0;
         overflow: hidden;
+        border-radius: 0.5rem 0.5rem 0 0;
     }
-    .video-thumbnail iframe {
+    .video-thumbnail img {
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        border: 0;
-        border-radius: 0.5rem 0.5rem 0 0;
+        object-fit: cover;
+    }
+    .video-thumbnail .play-button {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        transition: all 0.3s;
+    }
+    .video-card:hover .play-button {
+        background: rgba(255, 0, 0, 0.8);
+        transform: translate(-50%, -50%) scale(1.1);
     }
     .category-filter {
         overflow-x: auto;
@@ -47,9 +70,18 @@
     .category-filter .btn {
         margin-right: 0.5rem;
     }
+    .modal-video {
+        width: 100%;
+        height: 400px;
+        border: none;
+        border-radius: 0.5rem;
+    }
     @media (max-width: 768px) {
         .video-card {
             margin-bottom: 1rem;
+        }
+        .modal-video {
+            height: 250px;
         }
     }
 </style>
@@ -85,27 +117,36 @@
     <div class="row g-4">
         {% for video in videos %}
         <div class="col-12 col-md-6 col-lg-4">
-            <div class="card shadow-sm border-0 video-card">
-                <div class="video-thumbnail">
-                    <iframe src="{{ video.get_embed_url }}" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                            allowfullscreen></iframe>
+            <a href="{{ video.video_url }}" target="_blank" class="video-card">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="video-thumbnail">
+                        {% if video.get_thumbnail_url %}
+                            <img src="{{ video.get_thumbnail_url }}" alt="{{ video.title }}" loading="lazy">
+                        {% else %}
+                            <div style="background: #f8f9fa; display: flex; align-items: center; justify-content: center; color: #6c757d;">
+                                <i class="fas fa-video fa-3x"></i>
+                            </div>
+                        {% endif %}
+                        <div class="play-button">
+                            <i class="fas fa-play"></i>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ video.title }}</h5>
+                        <p class="card-text text-muted small mb-2">
+                            <i class="fas fa-tag me-1"></i>{{ video.get_category_display }}
+                            <span class="mx-2">•</span>
+                            <i class="fas fa-clock me-1"></i>{{ video.get_duration_display }}
+                        </p>
+                        <p class="card-text">{{ video.description|truncatewords:30 }}</p>
+                    </div>
+                    <div class="card-footer bg-white border-0">
+                        <small class="text-muted">
+                            <i class="fas fa-calendar-alt me-1"></i>{{ video.created_at|naturaltime }}
+                        </small>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <h5 class="card-title">{{ video.title }}</h5>
-                    <p class="card-text text-muted small mb-2">
-                        <i class="fas fa-tag me-1"></i>{{ video.get_category_display }}
-                        <span class="mx-2">•</span>
-                        <i class="fas fa-clock me-1"></i>{{ video.get_duration_display }}
-                    </p>
-                    <p class="card-text">{{ video.description|truncatewords:30 }}</p>
-                </div>
-                <div class="card-footer bg-white border-0">
-                    <small class="text-muted">
-                        <i class="fas fa-calendar-alt me-1"></i>{{ video.created_at|naturaltime }}
-                    </small>
-                </div>
-            </div>
+            </a>
         </div>
         {% empty %}
         <div class="col-12">

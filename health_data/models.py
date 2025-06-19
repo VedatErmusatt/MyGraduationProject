@@ -377,11 +377,43 @@ class MotivationVideo(models.Model):
 
     def get_embed_url(self):
         if self.video_source == "youtube":
-            # YouTube video ID'sini çıkar
-            video_id = self.video_url.split("v=")[-1].split("&")[0]
-            return f"https://www.youtube.com/embed/{video_id}"
+            # YouTube video ID'sini farklı URL formatlarından çıkar
+            import re
+            # YouTube URL pattern'ları
+            patterns = [
+                r'(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)',
+                r'youtube\.com\/watch\?.*v=([^&\n?#]+)',
+            ]
+            
+            for pattern in patterns:
+                match = re.search(pattern, self.video_url)
+                if match:
+                    video_id = match.group(1)
+                    return f"https://www.youtube.com/embed/{video_id}"
+            
+            # Eğer hiçbir pattern eşleşmezse, orijinal URL'i döndür
+            return self.video_url
         elif self.video_source == "vimeo":
             # Vimeo video ID'sini çıkar
             video_id = self.video_url.split("/")[-1]
             return f"https://player.vimeo.com/video/{video_id}"
         return self.video_url  # Yerel videolar için direkt URL'i döndür
+
+    def get_thumbnail_url(self):
+        """YouTube video thumbnail URL'ini döndür"""
+        if self.video_source == "youtube":
+            import re
+            # YouTube video ID'sini çıkar
+            patterns = [
+                r'(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)',
+                r'youtube\.com\/watch\?.*v=([^&\n?#]+)',
+            ]
+            
+            for pattern in patterns:
+                match = re.search(pattern, self.video_url)
+                if match:
+                    video_id = match.group(1)
+                    return f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg"
+            
+            return None
+        return None

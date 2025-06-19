@@ -18,8 +18,8 @@ from .models import EmergencyContact, HealthTip, Notification
 
 def home(request):
     """Ana sayfa görünümü"""
-    # if request.user.is_authenticated:
-    #     return redirect("core:dashboard")
+    if request.user.is_authenticated:
+        return redirect("core:dashboard")
     return render(request, "core/home.html")
 
 

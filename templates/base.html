@@ -39,12 +39,12 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav mx-auto">
+                    {% if user.is_authenticated %}
                     <li class="nav-item">
                         <a class="nav-link px-3 {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'core:dashboard' %}">
                             <i class="fas fa-home me-2"></i>Ana Sayfa
                         </a>
                     </li>
-                    {% if user.is_authenticated %}
                     <li class="nav-item">
                         <a class="nav-link px-3 {% if 'hospital_record' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'health_data:hospital_record_list' %}">
                             <i class="fas fa-hospital me-2"></i>Hastane Kayıtları
