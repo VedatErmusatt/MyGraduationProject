@@ -25,5 +25,4 @@ urlpatterns = [
     path("", include("core.urls")),
     path("users/", include("users.urls")),
     path("health/", include("health_data.urls")),
-    path("messaging/", include("messaging.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

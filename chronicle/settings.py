@@ -59,7 +59,6 @@ INSTALLED_APPS = [
     "core.apps.CoreConfig",
     "users.apps.UsersConfig",
     "health_data.apps.HealthDataConfig",
-    "messaging.apps.MessagingConfig",
 ]
 
 MIDDLEWARE = [
