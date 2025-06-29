@@ -215,7 +215,7 @@ class MessageForm(forms.ModelForm):
             del self.fields["receiver"]
         else:
             # Normal mesaj gönderme durumunda sadece doktorları listele
-            self.fields["receiver"].queryset = User.objects.filter(groups__name="Doktorlar")
+            self.fields["receiver"].queryset = User.objects.filter(is_doctor=True, is_active=True)
             if self.user:
                 # Kendisini alıcı listesinden çıkar
                 self.fields["receiver"].queryset = self.fields["receiver"].queryset.exclude(id=self.user.id)
