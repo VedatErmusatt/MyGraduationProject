@@ -201,6 +201,7 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 # CSRF ayarları
 CSRF_TRUSTED_ORIGINS = [
     "https://*.ngrok-free.app",
+    "https://*.chronicles.software",
 ]
 
 # Logging ayarları
